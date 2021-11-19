@@ -6,7 +6,15 @@ from consultorio import app, db, bcrypt
 from consultorio.models.models import Atendimento, Psicopedagogo, Situacao, Tipo_contato, Usuario, Sala, Paciente, Pessoa, Contato
 
 
+"""
+Escola
+Endereço da escola 
+Telefone da escola 
+Coordenadora (o)
+série atual 
+Período 
 
+"""
 
 @app.route('/')
 def home():
