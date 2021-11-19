@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="text-center h1 text-success">{{title}}</div>
+    <div class="container">
+        {% from "_formhelpers.html" import render_field %}
+        <form method="post" enctype="multipart/form-data">
+        <div>
+            {{ render_field(form.nome) }}
+            {{ render_field(form.email) }}
+            {{ render_field(form.rg) }}
+            {{ render_field(form.cpf) }}
+            {{ render_field(form.telefone) }}
+
+        </div>
+    <p><input type=submit value=Registrar>
+    </form>
+    </div>
+{% endblock content %}

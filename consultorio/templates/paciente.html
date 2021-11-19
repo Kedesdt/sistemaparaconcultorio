@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="text-center h1 text-primary">{{paciente.pessoa.nome}}</div>
+
+{% include '_nav.html' %}
+
+
+  <table class="table">
+    <tbody>
+      <tr>
+        <td>Nome</td>
+        <td>{{paciente.pessoa.nome}}</td>
+      </tr>
+      {% for contato in contatos_paciente %}
+      <tr>
+        <td>{{contato.tipo.tipo}}</td>
+        <td>{{contato.contato}}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td>Responsável</td>
+        <td>{{paciente.responsavel.nome}}</td>
+      </tr>
+      {% for contato in contatos_responsavel %}
+      <tr>
+        <td>{{contato.tipo.tipo}}</td>
+        <td>{{contato.contato}}</td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+{% endblock content %}

@@ -1,0 +1,32 @@
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
+  <!--<a class="navbar-brand" href="#">Navbar</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>-->
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="{{url_for('agenda', ano=2021, mes = 11)}}">Agenda <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{url_for('psicopedagogos')}}">Psicopedagogos</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{url_for('pacientes')}}">Pacientes</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-expanded="false">
+          Menu
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="{{url_for('add_psicopedagogo')}}">Adicionar Psicopedagogo</a>
+          <a class="dropdown-item" href="{{url_for('add_paciente')}}">Adicionar Paciente</a>
+          <a class="dropdown-item" href="{{url_for('add_sala')}}">Adicionar Sala</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Desconectar</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
