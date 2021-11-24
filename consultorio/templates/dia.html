@@ -10,38 +10,41 @@
   <tbody>
     {% for hora in horas %}
       <tr>
-        <td>{{horas[hora]['hora']}}</td>
-          <td><div class="container">
+        <td {% if horas[hora]["agora"]%}class="table-primary"{% endif %}><h3>{{horas[hora]['hora']}}</h3></td>
+          <td {% if horas[hora]["agora"]%}class="table-primary"{% endif %}><div class="container">
             {% if horas[hora]['marcado'] %}
             <div class="row table-primary">
-              {% for sala in salas %}
+              {% for psicopedagogo in psicopedagogos %}
                 <div class="col text-center border">
-                  {{ sala.nome }}
+                  {{ psicopedagogo.pessoa.nome }}
                 </div>
               {% endfor %}
             </div>
             <div class="row table-secondary">
-              {% for sala in salas %}
-                <div class="col border">
-                  Psicopedagogo
-                </div>
+              {% for psicopedagogo in psicopedagogos %}
                 <div class="col border">
                   Paciente
+                </div>
+                <div class="col border">
+                  Sala
                 </div>
               {% endfor %}
             </div>
             <div class="row table-success">
-              {% for sala in salas %}
+              {% for psicopedagogo in psicopedagogos %}
 
               <div class="col">
                 {% for compromisso in horas[hora]['compromissos'] %}
                 <div class="row">
-                  {% if compromisso.sala.nome == sala.nome %}
+                  {% if compromisso.psicopedagogo.pessoa.nome == psicopedagogo.pessoa.nome %}
                     <div class="col">
-                      {{compromisso.psicopedagogo.pessoa.nome}}
+                      <a href={{url_for('atendimento', ID = compromisso.atendimento_ID)}}>    
+                        {{compromisso.paciente.pessoa.nome}}
+                      </a>
                     </div>
+                      
                     <div class="col">
-                      {{compromisso.paciente.pessoa.nome}}
+                      {{compromisso.sala.nome}}
                     </div>
                     {% else %}
                     <div class="col"></div>
@@ -56,11 +59,9 @@
             {% endif %}
             
           </div></td>
-          {% if horas[hora]['agora']%}
-            <td class="table-primary"><a class="btn btn-outline-primary" href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">Marcar</a></td>
-          {% else %}
-            <td><a class="btn btn-outline-secondary" href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">Marcar</a></td>
-          {% endif %}
+          
+            <td {% if horas[hora]["agora"]%}class="table-primary"><a class="btn float-right btn-outline-primary btn-sm"{% else %}><a class="btn float-right btn-outline-secondary btn-sm"{% endif %} href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">+</a></td>
+          
       </tr>
     {% endfor %}
   </tbody>

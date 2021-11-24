@@ -18,6 +18,8 @@ Período
 
 """
 
+#BR = pytz.timezone('America/Sao_Paulo')
+
 @app.route('/')
 def home():
     if 'email' not in session:
@@ -25,7 +27,13 @@ def home():
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
 
-    return render_template('index.html', title = 'Inicio', email = session['email'], nome = usuario.nome_consultorio)
+    ano = time.localtime(time.time()).tm_year
+    mes = time.localtime(time.time()).tm_mon
+    dia = time.localtime().tm_mday
+
+    #return render_template('index.html', title = 'Inicio', email = session['email'], nome = usuario.nome_consultorio)
+    return redirect(url_for('dia', ano = ano, mes = mes, dia= dia))
+
 
 @app.route('/agenda/<int:ano>/<int:mes>/<int:dia>')
 def dia(ano, mes, dia):
@@ -41,6 +49,7 @@ def dia(ano, mes, dia):
     horas = {}
 
     salas = Sala.query.filter_by(usuario_ID = usuario.id).all()
+    psicopedagogos = Psicopedagogo.query.filter_by(usuario_ID = usuario.id).all()
 
     for i in range(24):
         horas[i] = {'agora' : False}
@@ -57,14 +66,65 @@ def dia(ano, mes, dia):
         horas[i.data_hora.hour]["compromissos"].append(i)
         horas[i.data_hora.hour]['marcado'] = True
 
-    return render_template('dia.html', nome = usuario.nome_consultorio, title = 'Agenda', email = session['email'], horas = horas, dia = dia, mes = mes, ano = ano, salas = salas)
+    return render_template('dia.html', nome = usuario.nome_consultorio, title = 'Agenda', email = session['email'],
+                            horas = horas, dia = dia, mes = mes, ano = ano, salas = salas, psicopedagogos = psicopedagogos)
 
 
 @app.route('/atendimento/<int:ID>', methods = ['GET', 'POST'])
 def atendimento(ID):
     if 'email' not in session:
         return redirect(url_for('login'))
-    return "OLA"
+    
+    atendimento = Atendimento.query.filter_by(atendimento_ID = ID).first()
+
+    return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento)
+
+
+@app.route('/atendimento/apagar/<int:ID>', methods = ['GET', 'POST'])
+def apagar_atendimento(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    atendimento = Atendimento.query.filter_by(atendimento_ID = ID).first()
+    db.session.delete(atendimento)
+    db.session.commit()
+
+    return redirect(url_for('home'))
+
+@app.route('/atendimento/editar/<int:ID>', methods = ['GET', 'POST'])
+def editar_atendimento(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    form = Formulario_resgistro_agendamento(request.form)
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    atendimento = Atendimento.query.filter_by(atendimento_ID = ID).first()
+
+    if request.method == "POST" and form.validate():
+
+        atendimento.sala_ID = request.form.get("sala")
+        atendimento.psicopedagogo_ID = request.form.get("psicopedagogo")
+        atendimento.paciente_ID = request.form.get("paciente")
+        #hora = datetime.datetime.strptime(form.hora.data, '%H:%M:%S').hour
+
+        data_hora = datetime.datetime.combine(datetime.date(atendimento.data_hora.year, atendimento.data_hora.month, atendimento.data_hora.day), form.hora.data)
+        atendimento.data_hora = data_hora
+        atendimento.obs = form.obs.data
+        db.session.commit()
+        return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento)
+    
+    
+    psicopedagogos = Psicopedagogo.query.filter_by(usuario_ID = usuario.id).all()
+    pacientes = Paciente.query.filter_by(usuario_ID = usuario.id).all()
+    salas = Sala.query.filter_by(usuario_ID = usuario.id).all()
+
+    form.obs.data = atendimento.obs
+
+    hora = str(atendimento.data_hora.hour).zfill(2)
+    
+    return render_template('editar_atendimento.html', nome = 'atendimento.paciente.pessoa.nome', atendimento= atendimento, psicopedagogos=psicopedagogos,
+                            pacientes = pacientes, salas = salas, form = form, hora=hora)
+
 
 @app.route('/agendamento/<int:ano>/<int:mes>/<int:dia>/<int:hora>', methods = ['GET', 'POST'])
 def agendamento(ano, mes, dia, hora):
@@ -80,11 +140,6 @@ def agendamento(ano, mes, dia, hora):
         time = datetime.time(hora, 0)
 
         data = datetime.date(ano, mes, dia)
-
-        print('#######')
-        print(request.form.get("psicopedagogo"))
-        print(request.form.get("paciente"))
-        print(request.form.get("sala"))
 
         date_time = datetime.datetime.combine(data, time)
 
@@ -125,10 +180,20 @@ def agenda(ano, mes):
     ano_anterior = ano - 1 if mes_anterior == 12 else ano
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
+    di = datetime.date(ano, mes, 1)
+    df = datetime.date(proximo_ano, proximo_mes, 1)
+    atendimentos = Atendimento.query.filter_by(usuario_ID = usuario.id).filter(Atendimento.data_hora >= di).filter(Atendimento.data_hora <= df).order_by(Atendimento.data_hora)
+
+    for atendimento in atendimentos:
+
+        l_mes[atendimento.data_hora.day]['compromissos'].append(atendimento)
+
+    horas = ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+             "12:00","13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"]
 
     return render_template('agenda.html', title = 'Agenda', email = session['email'], 
     nome = usuario.nome_consultorio, usuario = usuario, l_mes = l_mes, mes = mes, ano = ano, proximo_mes = proximo_mes, proximo_ano = proximo_ano,
-    mes_anterior = mes_anterior, ano_anterior = ano_anterior, nome_atual = meses[mes - 1], nome_anterior = meses[mes_anterior - 1], proximo_nome = meses[proximo_mes - 1])
+    mes_anterior = mes_anterior, ano_anterior = ano_anterior, nome_atual = meses[mes - 1], nome_anterior = meses[mes_anterior - 1], proximo_nome = meses[proximo_mes - 1], horas = horas)
 
 
 @app.route('/registrar', methods = ['GET', 'POST'])
@@ -163,6 +228,11 @@ def login():
 
         return redirect(url_for('home'))
     return render_template('login.html', title = 'Login', form = form)
+
+@app.route('/logout')
+def logout():
+    del session['email']
+    return redirect(url_for('login'))
 
 @app.route('/cadastro/sala', methods = ['GET', 'POST'])
 def add_sala():

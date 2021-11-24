@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="text-center h1 text-primary">{{nome}}</div>
+
+{% include '_nav.html' %}
+
+<table class="table">
+  <tbody>
+    <tr><td colspan="2"><h1 class="text-center">{{atendimento.paciente.pessoa.nome}}</h1></td></tr>
+    <tr><td class="text-center">Psicopedagogo</td><td class="text-center">{{atendimento.psicopedagogo.pessoa.nome}}</td></tr>
+    <tr><td class="text-center">Sala</td><td class="text-center">{{atendimento.sala.nome}}</td></tr>
+    <tr><td class="text-center">Data e Hora</td><td class="text-center">{{atendimento.data_hora}}</td></tr>
+    <tr><td colspan="2" class="text-center">Observações</td></tr>
+    <tr aria-rowspan="5"><td colspan="2" class="text-center">{% if atendimento.obs %}{{atendimento.obs}} {% endif %}</td></tr>
+    <tr><td><a class="btn float-left btn-primary" href={{url_for('editar_atendimento', ID = atendimento.atendimento_ID)}}>Editar</a></td>
+        <td><a class="btn float-right btn-danger" href={{url_for('apagar_atendimento', ID = atendimento.atendimento_ID)}}>Apagar</a></td>
+    </tr>
+  </tbody>
+</table>
+
+{% endblock content %}
