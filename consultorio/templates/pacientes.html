@@ -11,7 +11,7 @@
     {% for paciente in pacientes %}
       <tr>
           <td><a class="btn btn-outline-secondary" href="{{url_for('paciente', ID=paciente.paciente_ID)}}" role="button">{{paciente.pessoa.nome}}</a></td>
-          <td><a class="float-right btn btn-danger" href="#" role="button">Apagar</a></td>
+          <td><a class="float-right btn btn-danger" href="{{url_for('apagar_paciente', ID = paciente.paciente_ID)}}" role="button">Apagar</a></td>
       </tr>
     {% endfor %}
   </tbody>

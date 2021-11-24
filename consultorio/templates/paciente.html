@@ -29,6 +29,16 @@
         <td>{{contato.contato}}</td>
       </tr>
       {% endfor %}
+      <tr>
+        <td>Coordenador</td>
+        <td>{{paciente.coordenador.coordenador_nome}}</td>
+      </tr>
+      {% for contato in contatos_coordenador %}
+      <tr>
+        <td>{{contato.tipo.tipo}}</td>
+        <td>{{contato.contato}}</td>
+      </tr>
+      {% endfor %}
 
     </tbody>
   </table>

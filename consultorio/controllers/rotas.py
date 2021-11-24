@@ -492,6 +492,51 @@ def apagar_coordenador(ID):
 
     return redirect(url_for('coordenadores'))
 
+@app.route('/apagar_paciente/<int:ID>')
+def apagar_paciente(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    paciente = Paciente.query.filter_by(paciente_ID = ID).first()
+    db.session.delete(paciente)
+    db.session.commit()
+
+    return redirect(url_for('pacientes'))
+
+
+@app.route('/apagar_sala/<int:ID>')
+def apagar_sala(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    sala = Sala.query.filter_by(sala_ID = ID).first()
+    db.session.delete(sala)
+    db.session.commit()
+
+    return redirect(url_for('salas'))
+
+@app.route('/apagar_psicopedagogo/<int:ID>')
+def apagar_psicopedagogo(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = ID).first()
+    db.session.delete(psicopedagogo)
+    db.session.commit()
+
+    return redirect(url_for('psicopedagogos'))
+
+@app.route('/apagar_escola/<int:ID>')
+def apagar_escola(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    escola = Escola.query.filter_by(escola_ID = ID).first()
+    db.session.delete(escola)
+    db.session.commit()
+
+    return redirect(url_for('escolas'))
+
 
 @app.route('/paciente/<int:ID>')
 def paciente(ID):
@@ -502,8 +547,9 @@ def paciente(ID):
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
     contatos_paciente = Contato.query.filter_by(pessoa_ID = paciente.pessoa.pessoa_ID)
     contatos_responsavel = Contato.query.filter_by(pessoa_ID = paciente.responsavel.pessoa_ID)
+    contatos_coordenador = Contato.query.filter_by(coordenador_ID = paciente.coordenador.coordenador_ID)
 
-    return render_template('paciente.html', title = paciente.pessoa.nome, paciente = paciente, contatos_paciente = contatos_paciente, contatos_responsavel = contatos_responsavel)
+    return render_template('paciente.html', title = paciente.pessoa.nome, contatos_coordenador = contatos_coordenador, paciente = paciente, contatos_paciente = contatos_paciente, contatos_responsavel = contatos_responsavel)
 
 @app.route('/pacientes')
 def pacientes():
@@ -559,7 +605,7 @@ def add_paciente():
             db.session.add(pessoa_responsavel)
             pessoa_responsavel = Pessoa.query.filter_by(cpf = form.cpf_r.data).first()
             
-        paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"))
+        paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"), coordenador_ID= request.form.get("coordenador"))
 
         tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
         

@@ -11,7 +11,7 @@
         {% for sala in salas %}
         <tr>
             <td><a class="btn btn-outline-secondary" href="{{url_for('sala', ID=sala.sala_ID)}}" role="button">{{sala.nome}}</a></td>
-            <td><a class="float-right btn btn-danger" href="#" role="button">Apagar</a></td>
+            <td><a class="float-right btn btn-danger" href="{{url_for('apagar_sala', ID=sala.sala_ID)}}" role="button">Apagar</a></td>
         </tr>
       {% endfor %}
     </tbody>
