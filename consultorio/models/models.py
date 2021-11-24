@@ -55,7 +55,7 @@ class Tipo_contato(db.Model):
 class Escola(db.Model):
 
     escola_ID = db.Column(db.Integer, primary_key=True)
-    escola_nome = db.Column(db.String(30), primary_key=True)
+    escola_nome = db.Column(db.String(30))
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 

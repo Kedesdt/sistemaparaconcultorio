@@ -17,7 +17,7 @@
                 {% endfor %}
               </select>
             
-            <a class="float-right btn btn-sm btn-outline-secondary"  href="{{url_for('add_escola')}}" role="button">Adicionar Escola</a>
+            <a class="float-right btn btn-sm btn-outline-secondary"  href="{{url_for('add_escola', next = 'add_paciente')}}" role="button">Adicionar Escola</a>
             
             </dd>
 
