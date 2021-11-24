@@ -10,7 +10,7 @@ class Formulario_de_registro(Form):
         validators.DataRequired(),
         validators.EqualTo('confirm', message='Senhas precisam ser iguais')
     ])
-    confirm = PasswordField('Confirmaçãod e senha')
+    confirm = PasswordField('Confirmação de senha')
 
 class Formulario_login(Form):
 
@@ -32,7 +32,8 @@ class Formulario_registro_psicopedagogo(Form):
 class Formulario_registro_paciente(Form):
 
     nome = StringField('Nome', [validators.Length(min=4, max=25)])
-    cpf = StringField('CPF', [validators.Length(min=11, max=11)])
+    cpf = StringField('CPF')
+    data_de_nascimento = DateField('Data de nascimento')
     rg = StringField('RG')
     tel = StringField('Telefone')
     email = StringField('Email')
@@ -41,9 +42,27 @@ class Formulario_registro_paciente(Form):
     rg_r = StringField('RG do Responsavel')
     tel_r = StringField('Telefone do Responsavel')
     email_r = StringField('Email do Responsavel')
+    serie_atual = StringField("Série Atual")
+
+    obs = TextAreaField("Observações")
 
 
 class Formulario_resgistro_agendamento(Form):
 
     hora = TimeField("Hora")
     obs = TextAreaField("Observações")
+
+class Formulario_registro_escola(Form):
+
+    nome = StringField("Nome", [validators.Length(min=4, max=25)])
+    endereco = StringField("Endereço", [validators.Length(min=4, max=50)])
+    telefone = StringField("Telefone", [validators.Length(min=9, max=15)])
+
+class Formulario_registro_coordenador(Form):
+
+    nome = StringField("Nome", [validators.Length(min=4, max=25)])
+    telefone = StringField("Telefone", [validators.Length(min=9, max=15)])
+
+class Formulario_cadastro_situacao(Form):
+
+    nome = StringField('Situação', [validators.Length(min=4, max=25)])

@@ -6,8 +6,7 @@
         {% from "_formhelpers.html" import render_field %}
         <form method="post" enctype="multipart/form-data">
         <div>
-            {{ render_field(form.hora, class="form-control") }}
-            {{ render_field(form.obs, class="form-control") }}
+           
             <dt>
             <label for="sel_p">Psicopedagogo</label>
             </dt>
@@ -38,9 +37,7 @@
                     {% endfor %}
                   </select>
                 </dd>
-
-
-
+                {{ render_field(form.obs, class="form-control") }}
 
         </div>
     <p><input type=submit value=Registrar>

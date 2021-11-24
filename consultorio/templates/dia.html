@@ -6,12 +6,64 @@
 
 {% include '_nav.html' %}
 
-<div class="col-4">
-    <ul class="list-group">
-        {% for atendimento in atendimentos %}
-        <li class="list-group-item"><a class="btn btn-primary" href="{{url_for('atendimento', ID= atendimento.atendimento_ID)}}" role="button">{{atendimento.data_hora}} - {{atendimento.paciente.pessoa.nome}}</a></li>
-        {% endfor %}
-      </ul
-</div>
+<table class="table">
+  <tbody>
+    {% for hora in horas %}
+      <tr>
+        <td>{{horas[hora]['hora']}}</td>
+          <td><div class="container">
+            {% if horas[hora]['marcado'] %}
+            <div class="row table-primary">
+              {% for sala in salas %}
+                <div class="col text-center border">
+                  {{ sala.nome }}
+                </div>
+              {% endfor %}
+            </div>
+            <div class="row table-secondary">
+              {% for sala in salas %}
+                <div class="col border">
+                  Psicopedagogo
+                </div>
+                <div class="col border">
+                  Paciente
+                </div>
+              {% endfor %}
+            </div>
+            <div class="row table-success">
+              {% for sala in salas %}
+
+              <div class="col">
+                {% for compromisso in horas[hora]['compromissos'] %}
+                <div class="row">
+                  {% if compromisso.sala.nome == sala.nome %}
+                    <div class="col">
+                      {{compromisso.psicopedagogo.pessoa.nome}}
+                    </div>
+                    <div class="col">
+                      {{compromisso.paciente.pessoa.nome}}
+                    </div>
+                    {% else %}
+                    <div class="col"></div>
+                    <div class="col"></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            
+          </div></td>
+          {% if horas[hora]['agora']%}
+            <td class="table-primary"><a class="btn btn-outline-primary" href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">Marcar</a></td>
+          {% else %}
+            <td><a class="btn btn-outline-secondary" href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">Marcar</a></td>
+          {% endif %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 {% endblock content %}

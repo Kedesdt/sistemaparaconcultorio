@@ -8,11 +8,11 @@
     {% from "_formhelpers.html" import render_field %}
     <form method="post" enctype="multipart/form-data">
     <div>
-        {{ render_field(form.nome) }}
-        {{ render_field(form.nome_consultorio) }}
-        {{ render_field(form.email) }}
-        {{ render_field(form.senha) }}
-        {{ render_field(form.confirm) }}
+        {{ render_field(form.nome, class= "form-control") }}
+        {{ render_field(form.nome_consultorio, class= "form-control") }}
+        {{ render_field(form.email, class= "form-control") }}
+        {{ render_field(form.senha, class= "form-control") }}
+        {{ render_field(form.confirm, class= "form-control") }}
 
     </div>
   <p><input type=submit value=Registrar>

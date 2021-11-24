@@ -3,7 +3,7 @@ from .funcoes import *
 from flask import render_template, session, request, redirect, url_for, flash
 from consultorio.models.forms import *
 from consultorio import app, db, bcrypt
-from consultorio.models.models import Atendimento, Psicopedagogo, Situacao, Tipo_contato, Usuario, Sala, Paciente, Pessoa, Contato
+from consultorio.models.models import Atendimento, Coordenador, Escola, Psicopedagogo, Situacao, Tipo_contato, Tipo_endereco, Usuario, Sala, Paciente, Pessoa, Contato, Endereco
 
 
 """
@@ -38,11 +38,26 @@ def dia(ano, mes, dia):
     di = datetime.datetime.combine(date, datetime.time(0,0,0))
     df = datetime.datetime.combine(date, datetime.time(23,59,59))
 
+    horas = {}
+
+    salas = Sala.query.filter_by(usuario_ID = usuario.id).all()
+
+    for i in range(24):
+        horas[i] = {'agora' : False}
+        horas[i]['hora'] = "%s:00" %str(i).zfill(2)
+        horas[i]["compromissos"] = []
+        horas[i]['marcado'] = False
+
+    horas[time.localtime(time.time()).tm_hour]['agora'] = True
+
     atendimentos = Atendimento.query.filter_by(usuario_ID = usuario.id).filter(Atendimento.data_hora >= di).filter(Atendimento.data_hora <= df).all()
+    salas = Sala.query.filter_by(usuario_ID = usuario.id).all()
 
-    print(atendimentos)
+    for i in atendimentos:
+        horas[i.data_hora.hour]["compromissos"].append(i)
+        horas[i.data_hora.hour]['marcado'] = True
 
-    return render_template('dia.html', nome = usuario.nome_consultorio, title = 'Agenda', email = session['email'], atendimentos = atendimentos)
+    return render_template('dia.html', nome = usuario.nome_consultorio, title = 'Agenda', email = session['email'], horas = horas, dia = dia, mes = mes, ano = ano, salas = salas)
 
 
 @app.route('/atendimento/<int:ID>', methods = ['GET', 'POST'])
@@ -51,8 +66,8 @@ def atendimento(ID):
         return redirect(url_for('login'))
     return "OLA"
 
-@app.route('/agendamento/<int:ano>/<int:mes>/<int:dia>', methods = ['GET', 'POST'])
-def agendamento(ano, mes, dia):
+@app.route('/agendamento/<int:ano>/<int:mes>/<int:dia>/<int:hora>', methods = ['GET', 'POST'])
+def agendamento(ano, mes, dia, hora):
     if 'email' not in session:
         return redirect(url_for('login'))
 
@@ -62,7 +77,8 @@ def agendamento(ano, mes, dia):
 
     if request.method == "POST" and form.validate():
 
-        time = form.hora.data
+        time = datetime.time(hora, 0)
+
         data = datetime.date(ano, mes, dia)
 
         print('#######')
@@ -167,6 +183,112 @@ def add_sala():
         return redirect(url_for('home'))
     return render_template('addsala.html', title= "Cadastro de sala", form = form)
 
+@app.route('/cadastro/situacao', methods = ['GET', 'POST'])
+def add_situacao():
+    
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    form = Formulario_cadastro_situacao(request.form)
+    
+    if request.method == "POST" and form.validate():
+
+        usuario = Usuario.query.filter_by(email = session['email']).first()
+        situacao = Situacao(nome = form.nome.data, usuario_ID = usuario.id) 
+        db.session.add(situacao)
+        db.session.commit()
+
+        flash(f'Situação {form.nome.data} Cadastrada com sucesso')
+        return redirect(url_for('home'))
+    return render_template('add_situacao.html', title= "Cadastro de situação", form = form)
+
+@app.route('/cadastro/escola', methods = ['GET', 'POST'])
+def add_escola():
+    
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    form = Formulario_registro_escola(request.form)
+    
+    if request.method == "POST" and form.validate():
+
+        usuario = Usuario.query.filter_by(email = session['email']).first()
+        escola = Escola(escola_nome = form.nome.data, usuario_ID = usuario.id)
+        ultima = Escola.query.order_by(Escola.escola_ID.desc()).first()
+
+        if ultima:
+            ID = int(ultima.escola_ID) + 1
+        else:
+            ID = 1
+
+        tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
+        
+        if not tipo_contato is None:
+            telefone = Contato(escola_ID = ID, tipo_ID = tipo_contato.tipo_ID, contato = form.telefone.data)
+        else:
+            tipo_contato = Tipo_contato(tipo = "Telefone")
+            db.session.add(tipo_contato)
+            tipo_contato = Tipo_contato.query.filter_by(tipo= "Telefone").first()
+            telefone = Contato(escola_ID = ID, tipo_ID = tipo_contato.tipo_ID, contato = form.telefone.data)
+
+        tipo_endereco = Tipo_endereco.query.filter_by(tipo = "Comercial").first()
+        if not tipo_endereco is None:
+            endereco = Endereco(escola_ID = ID, tipo_ID = tipo_endereco.tipo_ID, endereco = form.endereco.data)
+        else:
+            tipo_endereco = Tipo_endereco(tipo = "Comercial")
+            db.session.add(tipo_endereco)
+            tipo_endereco = Tipo_endereco.query.filter_by(tipo= "Comercial").first()
+            endereco = Endereco(escola_ID = ID, tipo_ID = tipo_endereco.tipo_ID, endereco = form.endereco.data)
+
+        db.session.add(endereco)
+        db.session.add(telefone)
+        db.session.add(escola)
+        db.session.commit()
+
+        flash(f'Escola {form.nome.data} Cadastrada com sucesso')
+        return redirect(url_for('home'))
+    return render_template('add_escola.html', title= "Cadastro de Escola", form = form)
+
+
+@app.route('/cadastro/coordenador', methods = ['GET', 'POST'])
+def add_coordenador():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    form = Formulario_registro_coordenador(request.form)
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    escolas = Escola.query.filter_by(usuario_ID = usuario.id).all()
+    
+    if request.method == "POST" and form.validate():
+
+        
+        escola = request.form.get("escola")
+        coordenador = Coordenador(coordenador_nome = form.nome.data, escola_ID = escola, usuario_ID = usuario.id)
+        ultimo = Coordenador.query.order_by(Coordenador.coordenador_ID.desc()).first()
+
+        if ultimo:
+            ID = int(ultimo.escola_ID) + 1
+        else:
+            ID = 1
+
+        tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
+        
+        if not tipo_contato is None:
+            telefone = Contato(coordenador_ID = ID, tipo_ID = tipo_contato.tipo_ID, contato = form.telefone.data)
+        else:
+            tipo_contato = Tipo_contato(tipo = "Telefone")
+            db.session.add(tipo_contato)
+            tipo_contato = Tipo_contato.query.filter_by(tipo= "Telefone").first()
+            telefone = Contato(coordenador_ID = ID, tipo_ID = tipo_contato.tipo_ID, contato = form.telefone.data)
+
+        db.session.add(telefone)
+        db.session.add(coordenador)
+        db.session.commit()
+
+        flash(f'Coordenador {form.nome.data} Cadastrado com sucesso')
+        return redirect(url_for('home'))
+
+    return render_template('add_coordenador.html', title= "Cadastro de Coordenador", form = form, escolas = escolas)
 
 @app.route('/cadastro/psicopedagogo', methods = ['GET', 'POST'])
 def add_psicopedagogo():
@@ -182,7 +304,7 @@ def add_psicopedagogo():
         pessoa = Pessoa(nome = form.nome.data, usuario_ID = usuario.id, cpf = form.cpf.data, rg = form.rg.data)
         db.session.add(pessoa)
         pessoa = Pessoa.query.filter_by(cpf = form.cpf.data).first()
-        tipo_contato = Tipo_contato.query.filter_by(tipo_ID = "Telefone").first()
+        tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
         
         if not tipo_contato is None:
             telefone = Contato(pessoa_ID = pessoa.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.telefone.data)
@@ -193,7 +315,7 @@ def add_psicopedagogo():
             telefone = Contato(pessoa_ID = pessoa.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.telefone.data)
         
 
-        tipo_contato = Tipo_contato.query.filter_by(tipo_ID = "Email").first()
+        tipo_contato = Tipo_contato.query.filter_by(tipo = "Email").first()
         if not tipo_contato is None:
             email = Contato(pessoa_ID = pessoa.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email.data)
         else:
@@ -213,6 +335,49 @@ def add_psicopedagogo():
         return redirect(url_for('home'))
     return render_template('addpsic.html', title= "Cadastro de Psicopedagogo", form = form)
 
+@app.route('/escolas')
+def escolas():
+
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    escolas = Escola.query.filter_by(usuario_ID = usuario.id).all()
+
+    return render_template('escolas.html', nome=usuario.nome_consultorio, title = 'Escolas', escolas = escolas)
+
+@app.route('/salas')
+def salas():
+
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    salas = Sala.query.filter_by(usuario_ID = usuario.id).all()
+
+    return render_template('salas.html', nome=usuario.nome_consultorio, title = 'Salas', salas = salas)
+
+@app.route('/sala/<int:ID>')
+def sala(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    sala = Sala.query.filter_by(sala_ID = ID).first()
+
+    return render_template('sala.html', title = sala.nome, sala =sala)
+
+@app.route('/escola/<int:ID>')
+def escola(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    escola = Escola.query.filter_by(escola_ID = ID).first()
+    contatos = Contato.query.filter_by(escola_ID = ID)
+    enderecos = Endereco.query.filter_by(escola_ID = ID)
+
+    return render_template('escola.html', title = escola.escola_nome, contatos = contatos, enderecos=enderecos, escola=escola)
 
 @app.route('/psicopedagogos')
 def psicopedagogos():
@@ -222,9 +387,41 @@ def psicopedagogos():
     usuario = Usuario.query.filter_by(email = session['email']).first()
     psicopedagogos = Psicopedagogo.query.filter_by(usuario_ID = usuario.id).all()
 
-    print(psicopedagogos[0].pessoa.nome)
-
     return render_template('psicopedagogos.html', nome=usuario.nome_consultorio, title = 'Psicopedagogos', psicopedagogos = psicopedagogos)
+
+@app.route('/coordenadores')
+def coordenadores():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    coordenadores = Coordenador.query.filter_by(usuario_ID = usuario.id).all()
+
+    return render_template('coordenadores.html', nome=usuario.nome_consultorio, title = 'Coordenadores', coordenadores = coordenadores)
+
+@app.route('/coordenador/<int:ID>')
+def coordenador(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    coordenador = Coordenador.query.filter_by(coordenador_ID = ID).first()
+    contatos = Contato.query.filter_by(coordenador_ID = ID)
+
+    return render_template('coordenador.html', title = coordenador.coordenador_nome, coordenador = coordenador, contatos=contatos)
+
+
+@app.route('/apagar_coordenador/<int:ID>')
+def apagar_coordenador(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    coordenador = Coordenador.query.filter_by(coordenador_ID = ID).first()
+    db.session.delete(coordenador)
+    db.session.commit()
+
+    return redirect(url_for('coordenadores'))
+
 
 @app.route('/paciente/<int:ID>')
 def paciente(ID):
@@ -247,7 +444,6 @@ def pacientes():
     usuario = Usuario.query.filter_by(email = session['email']).first()
     pacientes = Paciente.query.filter_by(usuario_ID = usuario.id).all()
     
-
     return render_template('pacientes.html', nome=usuario.nome_consultorio, title = 'Pacientes', pacientes = pacientes)
 
 @app.route('/psicopedagogo/<int:ID>')
@@ -272,17 +468,18 @@ def add_paciente():
     usuario = Usuario.query.filter_by(email = session['email']).first()
     psicopedagogos = Psicopedagogo.query.filter_by(usuario_ID = usuario.id).all()
     situacoes = Situacao.query.filter_by(usuario_ID = usuario.id).all()
+    coordenadores = Coordenador.query.filter_by(usuario_ID = usuario.id).all()
+    escolas = Escola.query.filter_by(usuario_ID = usuario.id).all()
     
     if request.method == "POST" and form.validate():
 
-        pessoa_paciente = Pessoa(nome = form.nome.data, usuario_ID = usuario.id, cpf = form.cpf.data, rg = form.rg.data)
-        db.session.add(pessoa_paciente)
-        pessoa_paciente = Pessoa.query.filter_by(cpf = form.cpf.data).first()
+        pessoa_paciente = Pessoa.query.filter_by(nome = form.nome.data).filter_by(usuario_ID = usuario.id).first()
 
         if not pessoa_paciente:
-            
-            pessoa_paciente = Pessoa.query.filter_by(nome = form.nome.data).first()
 
+            pessoa_paciente = Pessoa(nome = form.nome.data, usuario_ID = usuario.id, cpf = form.cpf.data, rg = form.rg.data)
+            db.session.add(pessoa_paciente)
+            pessoa_paciente = Pessoa.query.filter_by(nome = form.nome.data).filter_by(usuario_ID = usuario.id).first()
         
         pessoa_responsavel = Pessoa.query.filter_by(cpf = form.cpf_r.data).first()
 
@@ -294,7 +491,7 @@ def add_paciente():
             
         paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"))
 
-        tipo_contato = Tipo_contato.query.filter_by(tipo_ID = "Telefone").first()
+        tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
         
         if tipo_contato is None:
             
@@ -303,10 +500,18 @@ def add_paciente():
             tipo_contato = Tipo_contato.query.filter_by(tipo= "Telefone").first()
 
         
-        telefone_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel.data)
-        telefone_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel_r.data)
+        telefone_paciente = Contato.query.filter_by(pessoa_ID = pessoa_paciente.pessoa_ID).filter_by(contato = form.tel.data).first()
+        if not telefone_paciente:
+            telefone_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel.data)
+            db.session.add(telefone_paciente)
+       
         
-        tipo_contato = Tipo_contato.query.filter_by(tipo_ID = "Email").first()
+        telefone_responsavel = Contato.query.filter_by(pessoa_ID = pessoa_responsavel.pessoa_ID).filter_by(contato = form.tel_r.data).first()
+        if not telefone_responsavel:
+            telefone_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel_r.data)
+            db.session.add(telefone_responsavel)
+        
+        tipo_contato = Tipo_contato.query.filter_by(tipo = "Email").first()
         
         if tipo_contato is None:
 
@@ -314,23 +519,20 @@ def add_paciente():
             db.session.add(tipo_contato)
             tipo_contato = Tipo_contato.query.filter_by(tipo= "Email").first()
 
-
-        email_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email.data)
+        email_paciente = Contato.query.filter_by(pessoa_ID = pessoa_paciente.pessoa_ID).filter_by(contato = form.email.data).first()
+        if not email_paciente:
+            email_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email.data)
+            db.session.add(email_paciente)
 
         email_responsavel = Contato.query.filter_by(pessoa_ID = pessoa_responsavel.pessoa_ID).filter_by(contato = form.email_r.data).first()
         if not email_responsavel:
             email_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email_r.data)
             db.session.add(email_responsavel)
         
-        db.session.add(pessoa_paciente)
-        db.session.add(pessoa_responsavel)
-        db.session.add(paciente)
-        db.session.add(telefone_paciente)
-        db.session.add(telefone_responsavel)
-        db.session.add(email_paciente)
-        
+
+        db.session.add(paciente)        
         db.session.commit()
 
         flash(f'{form.nome.data} Cadastrado com sucesso')
         return redirect(url_for('home'))
-    return render_template('addpaciente.html', title= "Cadastro de Paciente", form = form, psicopedagogos = psicopedagogos, situacoes = situacoes)
+    return render_template('addpaciente.html', title= "Cadastro de Paciente", form = form, psicopedagogos = psicopedagogos, situacoes = situacoes, coordenadores = coordenadores, escolas = escolas)

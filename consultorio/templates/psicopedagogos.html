@@ -6,12 +6,15 @@
 
 {% include '_nav.html' %}
 
-<div class="col-4">
-    <ul class="list-group">
-        {% for psicopedagogo in psicopedagogos %}
-        <li class="list-group-item"><a class="btn btn-primary" href="{{url_for('psicopedagogo', ID=psicopedagogo.psicopedagogo_ID)}}" role="button">{{psicopedagogo.pessoa.nome}}</a></li>
-        {% endfor %}
-      </ul
-</div>
+<table class="table">
+  <tbody>
+    {% for psicopedagogo in psicopedagogos %}
+      <tr>
+          <td><a class="btn btn-outline-secondary" href="{{url_for('psicopedagogo', ID=psicopedagogo.psicopedagogo_ID)}}" role="button">{{psicopedagogo.pessoa.nome}}</a></td>
+          <td><a class="float-right btn btn-danger" href="#" role="button">Apagar</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 {% endblock content %}

@@ -6,11 +6,9 @@
         {% from "_formhelpers.html" import render_field %}
         <form method="post" enctype="multipart/form-data">
         <div>
-            {{ render_field(form.nome, class= "form-control") }}
-            {{ render_field(form.email, class= "form-control") }}
-            {{ render_field(form.rg, class= "form-control") }}
-            {{ render_field(form.cpf, class= "form-control") }}
-            {{ render_field(form.telefone, class= "form-control") }}
+            {{ render_field(form.nome, class="form-control") }}
+            {{ render_field(form.endereco, class="form-control") }}
+            {{ render_field(form.telefone, class="form-control") }}
 
         </div>
     <p><input type=submit value=Registrar>
