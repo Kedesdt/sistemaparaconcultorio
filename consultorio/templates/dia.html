@@ -6,12 +6,20 @@
 
 {% include '_nav.html' %}
 
+<div class="text-center">
+  <tr>
+    <td><a href="{{ url_for('dia_anterior', ano=ano, mes=mes, dia = dia)}}" class="btn btn-outline-primary btn-lg mt-2 mb-2" role="button" aria-pressed="true">&lt;</a></td>
+    <td><a href="#" class="btn btn-primary btn-lg mt-2 mb-2" role="button" aria-pressed="true">{{dia}}/{{mes}}</a></td>
+    <td><a href="{{ url_for('proximo_dia', ano=ano, mes=mes, dia = dia)}}" class="btn btn-outline-primary btn-lg mt-2 mb-2" role="button" aria-pressed="true">&gt;</a></td>
+  </tr>
+</div>
+
 <table class="table">
   <tbody>
     {% for hora in horas %}
       <tr>
-        <td {% if horas[hora]["agora"]%}class="table-primary"{% endif %}><h3>{{horas[hora]['hora']}}</h3></td>
-          <td {% if horas[hora]["agora"]%}class="table-primary"{% endif %}><div class="container">
+        <td {% if horas[hora]["agora"] and hoje %}class="table-primary"{% endif %}><h3>{{horas[hora]['hora']}}</h3></td>
+          <td {% if horas[hora]["agora"] and hoje %}class="table-primary"{% endif %}><div class="container">
             {% if horas[hora]['marcado'] %}
             <div class="row table-primary">
               {% for psicopedagogo in psicopedagogos %}
@@ -60,7 +68,7 @@
             
           </div></td>
           
-            <td {% if horas[hora]["agora"]%}class="table-primary"><a class="btn float-right btn-outline-primary btn-sm"{% else %}><a class="btn float-right btn-outline-secondary btn-sm"{% endif %} href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">+</a></td>
+            <td {% if horas[hora]["agora"] and hoje %}class="table-primary"><a class="btn float-right btn-outline-primary btn-sm"{% else %}><a class="btn float-right btn-outline-secondary btn-sm"{% endif %} href="{{url_for('agendamento', ano=ano, mes=mes, dia=dia, hora=hora)}}" role="button">+</a></td>
           
       </tr>
     {% endfor %}

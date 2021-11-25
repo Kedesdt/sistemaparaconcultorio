@@ -1,4 +1,4 @@
-import time, datetime
+import time, datetime, pytz
 from .funcoes import *
 from flask import render_template, session, request, redirect, url_for, flash
 from consultorio.models.forms import *
@@ -18,7 +18,7 @@ Período
 
 """
 
-#BR = pytz.timezone('America/Sao_Paulo')
+BR = pytz.timezone('America/Sao_Paulo')
 
 @app.route('/')
 def home():
@@ -38,6 +38,14 @@ def home():
 
     #return render_template('index.html', title = 'Inicio', email = session['email'], nome = usuario.nome_consultorio)
     return redirect(url_for('dia', ano = ano, mes = mes, dia= dia))
+
+
+@app.route('/esse_mes')
+def esse_mes():
+
+    hoje = datetime.datetime.now(BR)
+
+    return redirect(url_for('agenda', ano = hoje.year, mes = hoje.month))
 
 
 @app.route('/agenda/<int:ano>/<int:mes>/<int:dia>')
@@ -65,8 +73,12 @@ def dia(ano, mes, dia):
         horas[i]['hora'] = "%s:00" %str(i).zfill(2)
         horas[i]["compromissos"] = []
         horas[i]['marcado'] = False
+    
+    hoje = datetime.datetime.now(BR)
 
-    horas[time.localtime(time.time()).tm_hour]['agora'] = True
+    hoje = hoje.day == date.day and hoje.month == date.month
+
+    horas[datetime.datetime.now(BR).hour]['agora'] = True
 
     atendimentos = Atendimento.query.filter_by(usuario_ID = usuario.id).filter(Atendimento.data_hora >= di).filter(Atendimento.data_hora <= df).all()
     salas = Sala.query.filter_by(usuario_ID = usuario.id).all()
@@ -76,8 +88,33 @@ def dia(ano, mes, dia):
         horas[i.data_hora.hour]['marcado'] = True
 
     return render_template('dia.html', nome = usuario.nome_consultorio, title = 'Agenda', email = session['email'],
-                            horas = horas, dia = dia, mes = mes, ano = ano, salas = salas, psicopedagogos = psicopedagogos)
+                            horas = horas, dia = dia, mes = mes, ano = ano, salas = salas, psicopedagogos = psicopedagogos, hoje = hoje)
 
+@app.route('/proximo_dia/<int:ano>/<int:mes>/<int:dia>')
+def proximo_dia(ano, mes, dia):
+
+    t = time.mktime(time.strptime("%s-%s-%s" %(ano, mes, dia), "%Y-%m-%d"))
+    t += (24 * 60* 60)
+    t = time.localtime(t)
+
+    print(t.tm_mday)
+    print(t.tm_mon)
+    print(t.tm_year)
+
+    return redirect(url_for('dia', ano = t.tm_year, mes = t.tm_mon, dia = t.tm_mday))
+
+@app.route('/dia_anterior/<int:ano>/<int:mes>/<int:dia>')
+def dia_anterior(ano, mes, dia):
+    
+    t = time.mktime(time.strptime("%s-%s-%s" %(ano, mes, dia), "%Y-%m-%d"))
+    t -= (24 * 60* 60)
+    t = time.localtime(t)
+
+    print(t.tm_mday)
+    print(t.tm_mon)
+    print(t.tm_year)
+
+    return redirect(url_for('dia', ano = t.tm_year, mes = t.tm_mon, dia = t.tm_mday))
 
 @app.route('/atendimento/<int:ID>', methods = ['GET', 'POST'])
 def atendimento(ID):
@@ -295,6 +332,10 @@ def add_sala():
         db.session.commit()
 
         flash(f'Sala {form.nome.data} Cadastrada com sucesso')
+
+        next = request.form.get('next')
+        if next:
+            return redirect(url_for(next))
         return redirect(url_for('home'))
     return render_template('addsala.html', title= "Cadastro de sala", form = form)
 
@@ -320,11 +361,14 @@ def add_situacao():
         db.session.commit()
 
         flash(f'Situação {form.nome.data} Cadastrada com sucesso')
+        next = request.form.get('next')
+        if next:
+            return redirect(url_for(next))
         return redirect(url_for('home'))
     return render_template('add_situacao.html', title= "Cadastro de situação", form = form)
 
 @app.route('/cadastro/escola', methods = ['GET', 'POST'])
-def add_escola(next = None):
+def add_escola():
     
     if 'email' not in session:
         return redirect(url_for('login'))
@@ -372,8 +416,9 @@ def add_escola(next = None):
         db.session.add(escola)
         db.session.commit()
 
-
         flash(f'Escola {form.nome.data} Cadastrada com sucesso')
+
+        next = request.form.get('next')
         if next:
             return redirect(url_for(next))
         return redirect(url_for('home'))
@@ -422,6 +467,10 @@ def add_coordenador():
         db.session.commit()
 
         flash(f'Coordenador {form.nome.data} Cadastrado com sucesso')
+        
+        next = request.form.get('next')
+        if next:
+            return redirect(url_for(next))
         return redirect(url_for('home'))
 
     return render_template('add_coordenador.html', title= "Cadastro de Coordenador", form = form, escolas = escolas)
@@ -474,6 +523,10 @@ def add_psicopedagogo():
         db.session.commit()
 
         flash(f'{form.nome.data} Cadastrado com sucesso')
+
+        next = request.form.get('next')
+        if next:
+            return redirect(url_for(next))
         return redirect(url_for('home'))
     return render_template('addpsic.html', title= "Cadastro de Psicopedagogo", form = form)
 
@@ -680,13 +733,50 @@ def paciente(ID):
         del session['email']
         return redirect(url_for('login'))
 
-    usuario = Usuario.query.filter_by(email = session['email']).first()
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
     contatos_paciente = Contato.query.filter_by(pessoa_ID = paciente.pessoa.pessoa_ID)
     contatos_responsavel = Contato.query.filter_by(pessoa_ID = paciente.responsavel.pessoa_ID)
     contatos_coordenador = Contato.query.filter_by(coordenador_ID = paciente.coordenador.coordenador_ID)
 
     return render_template('paciente.html', title = paciente.pessoa.nome, contatos_coordenador = contatos_coordenador, paciente = paciente, contatos_paciente = contatos_paciente, contatos_responsavel = contatos_responsavel)
+
+@app.route('/paciente/historico/<int:ID>')
+def historico(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+
+    if usuario is None:
+        del session['email']
+        return redirect(url_for('login'))
+
+    date = datetime.datetime.now(BR)
+
+    paciente = Paciente.query.filter_by(paciente_ID = ID).first()
+    atendimentos = Atendimento.query.filter(Atendimento.data_hora < date).filter(Atendimento.paciente_ID == ID)
+
+
+    return render_template('historico.html', title = paciente.pessoa.nome, paciente = paciente, atendimentos = atendimentos)
+
+
+@app.route('/paciente/proximas/<int:ID>')
+def proximas(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+
+    if usuario is None:
+        del session['email']
+        return redirect(url_for('login'))
+
+    date = datetime.datetime.now(BR)
+
+    paciente = Paciente.query.filter_by(paciente_ID = ID).first()
+    atendimentos = Atendimento.query.filter(Atendimento.data_hora > date).filter(Atendimento.paciente_ID == ID)
+
+    return render_template('proximas.html', title = paciente.pessoa.nome, paciente = paciente, atendimentos = atendimentos)
 
 @app.route('/pacientes')
 def pacientes():
@@ -750,7 +840,7 @@ def add_paciente():
             db.session.add(pessoa_paciente)
             pessoa_paciente = Pessoa.query.filter_by(nome = form.nome.data).filter_by(usuario_ID = usuario.id).first()
         
-        pessoa_responsavel = Pessoa.query.filter_by(cpf = form.cpf_r.data).first()
+        pessoa_responsavel = Pessoa.query.filter_by(usuario_ID = usuario.id).filter_by(cpf = form.cpf_r.data).first()
 
         if not pessoa_responsavel:
 
@@ -758,7 +848,9 @@ def add_paciente():
             db.session.add(pessoa_responsavel)
             pessoa_responsavel = Pessoa.query.filter_by(cpf = form.cpf_r.data).first()
             
-        paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"), coordenador_ID= request.form.get("coordenador"), escola_ID= request.form.get("escola"))
+        paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, 
+                            situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"), 
+                            coordenador_ID= request.form.get("coordenador"), escola_ID= request.form.get("escola"), obs = form.obs.data)
 
         tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
         
@@ -770,12 +862,14 @@ def add_paciente():
 
         
         telefone_paciente = Contato.query.filter_by(pessoa_ID = pessoa_paciente.pessoa_ID).filter_by(contato = form.tel.data).first()
+        
         if not telefone_paciente:
             telefone_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel.data)
             db.session.add(telefone_paciente)
        
         
         telefone_responsavel = Contato.query.filter_by(pessoa_ID = pessoa_responsavel.pessoa_ID).filter_by(contato = form.tel_r.data).first()
+        
         if not telefone_responsavel:
             telefone_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel_r.data)
             db.session.add(telefone_responsavel)
@@ -789,6 +883,7 @@ def add_paciente():
             tipo_contato = Tipo_contato.query.filter_by(tipo= "Email").first()
 
         email_paciente = Contato.query.filter_by(pessoa_ID = pessoa_paciente.pessoa_ID).filter_by(contato = form.email.data).first()
+        
         if not email_paciente:
             email_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email.data)
             db.session.add(email_paciente)

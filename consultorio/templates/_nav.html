@@ -1,13 +1,14 @@
+
 <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
-  <!--<a class="navbar-brand" href="#">Navbar</a>
+  <a class="navbar-brand" href="{{url_for('home')}}">Inicio</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
-  </button>-->
+  </button>
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="{{url_for('agenda', ano=2021, mes = 11)}}">Agenda <span class="sr-only">(current)</span></a>
+      <li class="nav-item">
+        <a class="nav-link" href="{{url_for('esse_mes')}}">Calendario</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{{url_for('psicopedagogos')}}">Psicopedagogos</a>
@@ -26,7 +27,7 @@
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-expanded="false">
-          Menu
+          Opções
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
           <a class="dropdown-item" href="{{url_for('add_psicopedagogo')}}">Adicionar Psicopedagogo</a>
@@ -40,5 +41,9 @@
         </div>
       </li>
     </ul>
+    <form class="d-flex">
+      <input class="form-control me-2" type="search" placeholder="Paciente" aria-label="Search">
+      <button class="btn btn-outline-success" type="submit">Procurar</button>
+    </form>
   </div>
 </nav>

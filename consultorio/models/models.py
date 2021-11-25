@@ -4,7 +4,6 @@ from consultorio import db
 
 class Usuario(db.Model):
 
-
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(80), unique=False, nullable=False)
     nome_consultorio = db.Column(db.String(80), unique=True, nullable=False)
@@ -34,7 +33,7 @@ class Pessoa(db.Model):
     data_de_nascimento = db.Column(db.Date)
     sexo_ID = db.Column(db.Integer, db.ForeignKey('sexo.sexo_ID'))
     sexo = db.relationship('Sexo', foreign_keys= sexo_ID)
-    cpf = db.Column(db.String(11), unique = True, nullable=True)
+    cpf = db.Column(db.String(11), unique = False, nullable=True)
     rg = db.Column(db.String(9), unique = False, nullable=True)
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario')

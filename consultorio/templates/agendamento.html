@@ -36,6 +36,7 @@
                     <option value="{{sala.sala_ID}}">{{sala.nome}}</option>
                     {% endfor %}
                   </select>
+                  <a class="float-right btn btn-sm btn-outline-secondary"  href="{{url_for('add_sala')}}" role="button">Adicionar Sala</a>
                 </dd>
                 {{ render_field(form.obs, class="form-control") }}
 

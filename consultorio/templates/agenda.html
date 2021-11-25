@@ -40,7 +40,7 @@
                 <div class="list-group">
 
                   {% for atendimento in l_mes[j]['compromissos'] %}
-                    <a class="list-group-item list-group-item-action mt-0" href="{{url_for('atendimento', ID=atendimento.atendimento_ID)}}">{{horas[atendimento.data_hora.hour]}}</a>
+                    <a class="list-group-item list-group-item-action mt-0" href="{{url_for('atendimento', ID=atendimento.atendimento_ID)}}">{{atendimento.paciente.pessoa.nome.split(' ')[0]}} {{horas[atendimento.data_hora.hour]}}</a>
                   {% endfor %}
                 </div>
               </div>
