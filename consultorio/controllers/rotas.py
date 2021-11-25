@@ -372,8 +372,6 @@ def add_escola(next = None):
         db.session.add(escola)
         db.session.commit()
 
-        next = request.form.get('next')
-        print(next)
 
         flash(f'Escola {form.nome.data} Cadastrada com sucesso')
         if next:
@@ -760,7 +758,7 @@ def add_paciente():
             db.session.add(pessoa_responsavel)
             pessoa_responsavel = Pessoa.query.filter_by(cpf = form.cpf_r.data).first()
             
-        paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"), coordenador_ID= request.form.get("coordenador"))
+        paciente = Paciente(usuario_ID = usuario.id, pessoa_ID = pessoa_paciente.pessoa_ID, responsavel_ID = pessoa_responsavel.pessoa_ID, situacao_ID = request.form.get("situacao"), psicopedagogo_ID= request.form.get("psicopedagogo"), coordenador_ID= request.form.get("coordenador"), escola_ID= request.form.get("escola"))
 
         tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
         

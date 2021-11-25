@@ -4,7 +4,7 @@ from wtforms.fields.simple import TextAreaField
 
 class Formulario_de_registro(Form):
     nome = StringField('Nome', [validators.Length(min=4, max=25)])
-    nome_consultorio = StringField('Nome do Consultório', [validators.Length(min=4, max=25)])
+    nome_consultorio = StringField('Nome do Consultório', [validators.Length(min=4, max=50)])
     email = StringField('Email', [validators.Length(min=6, max=35)])
     senha = PasswordField('Senha', [
         validators.DataRequired(),
@@ -37,11 +37,11 @@ class Formulario_registro_paciente(Form):
     rg = StringField('RG')
     tel = StringField('Telefone')
     email = StringField('Email')
-    nome_r = StringField('Nome do Responsavel', [validators.Length(min=4, max=25)])
-    cpf_r = StringField('CPF do Responsavel', [validators.Length(min=11, max=11)])
-    rg_r = StringField('RG do Responsavel')
-    tel_r = StringField('Telefone do Responsavel')
-    email_r = StringField('Email do Responsavel')
+    nome_r = StringField('Nome do Responsável', [validators.Length(min=4, max=25)])
+    cpf_r = StringField('CPF do Responsável', [validators.Length(min=11, max=11)])
+    rg_r = StringField('RG do Responsável')
+    tel_r = StringField('Telefone do Responsável')
+    email_r = StringField('Email do Responsável')
     serie_atual = StringField("Série Atual")
 
     obs = TextAreaField("Observações")

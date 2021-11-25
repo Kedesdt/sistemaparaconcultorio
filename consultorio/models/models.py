@@ -30,7 +30,7 @@ class Sexo(db.Model):
 class Pessoa(db.Model):
 
     pessoa_ID = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(30), primary_key = True)
+    nome = db.Column(db.String(30))
     data_de_nascimento = db.Column(db.Date)
     sexo_ID = db.Column(db.Integer, db.ForeignKey('sexo.sexo_ID'))
     sexo = db.relationship('Sexo', foreign_keys= sexo_ID)
@@ -62,7 +62,7 @@ class Escola(db.Model):
 class Coordenador(db.Model):
 
     coordenador_ID = db.Column(db.Integer, primary_key=True)
-    coordenador_nome = db.Column(db.String(30), primary_key=True)
+    coordenador_nome = db.Column(db.String(30))
     escola_ID = db.Column(db.Integer, db.ForeignKey('escola.escola_ID'))
     escola = db.relationship('Escola', foreign_keys=escola_ID)
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
