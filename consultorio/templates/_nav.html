@@ -41,8 +41,8 @@
         </div>
       </li>
     </ul>
-    <form class="d-flex">
-      <input class="form-control me-2" type="search" placeholder="Paciente" aria-label="Search">
+    <form class="d-flex" action="{{ url_for('procurar')}}" method="POST" enctype="multipart/form-data">
+      <input class="form-control me-2" type="search" name="nome" placeholder="Paciente" aria-label="Search">
       <button class="btn btn-outline-success" type="submit">Procurar</button>
     </form>
   </div>

@@ -900,3 +900,24 @@ def add_paciente():
         flash(f'{form.nome.data} Cadastrado com sucesso')
         return redirect(url_for('home'))
     return render_template('addpaciente.html', title= "Cadastro de Paciente", form = form, psicopedagogos = psicopedagogos, situacoes = situacoes, coordenadores = coordenadores, escolas = escolas)
+
+
+@app.route('/procurar', methods = ['GET', 'POST'])
+def procurar():
+
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+
+    if usuario is None:
+        del session['email']
+        return redirect(url_for('login'))
+
+    if request.method == "POST":
+
+        nome = request.form.get('nome')
+
+        pacientes = Paciente.query.join(Paciente.pessoa).filter(Pessoa.nome.like('%%'+nome+"%%"))
+
+        return render_template('pacientes.html', nome=usuario.nome_consultorio, title = 'Pacientes', pacientes = pacientes)
