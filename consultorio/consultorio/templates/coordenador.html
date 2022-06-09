@@ -2,23 +2,16 @@
 
 {% block content %}
 
-<div class="text-center h1 text-primary">{{psicopedagogo.pessoa.nome}}</div>
+<div class="text-center h1 text-primary">{{coordenador.coordenador_nome}}</div>
 
 {% include '_nav.html' %}
+
 
   <table class="table">
     <tbody>
       <tr>
         <td>Nome</td>
-        <td>{{psicopedagogo.pessoa.nome}}</td>
-      </tr>
-      <tr>
-        <td>RG</td>
-        <td>{{psicopedagogo.pessoa.rg}}</td>
-      </tr>
-      <tr>
-        <td>CPF</td>
-        <td>{{psicopedagogo.pessoa.cpf}}</td>
+        <td>{{coordenador.coordenador_nome}}</td>
       </tr>
       {% for contato in contatos %}
       <tr>

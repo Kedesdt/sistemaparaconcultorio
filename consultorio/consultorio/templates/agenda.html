@@ -26,16 +26,6 @@
         </tr>
       </thead>
       <tbody>
-<<<<<<< Updated upstream
-      {% for j in range(35) %}
-        {% if j%7 == 0 %}
-        <tr>
-        {% endif %}
-          <td >
-              <div class="card" style="height: 180px;">
-                <div class="card-body">{{ l_mes[j] }}
-                    <a class="float-right btn btn-sm btn-outline-secondary"  href="{{url_for('dia', ano=ano, mes=mes, dia=l_mes[j])}}" role="button">Abrir</a>
-=======
         {% for j in range(42) %}
           {% if j%7 == 0 %}
           <tr style="height: 300px">
@@ -52,17 +42,13 @@
                   {% for atendimento in l_mes[j]['compromissos'] %}
                     <a class="list-group-item list-group-item-info list-group-item-action" style="padding: 1px; margin: 1px;" href="{{url_for('atendimento', ID=atendimento.atendimento_ID)}}">{{atendimento.paciente.pessoa.nome.split(' ')[0]}} {{horas[atendimento.data_hora.hour]}}</a>
                   {% endfor %}
->>>>>>> Stashed changes
                 </div>
-              <div class="card-footer">
-                <a class="float-right btn btn-sm btn-primary"  href="{{url_for('agendamento', ano=ano, mes=mes, dia=l_mes[j])}}" role="button">+</a>
               </div>
-          </div>
-          </td>
-        {% if (j - 6)%7 == 0 %}
-        </tr>
-        {% endif %}
-      {% endfor %}
+            </td>
+          {% if (j - 6)%7 == 0 %}
+          </tr>
+          {% endif %}
+        {% endfor %}
         
       </tbody>
     </table>

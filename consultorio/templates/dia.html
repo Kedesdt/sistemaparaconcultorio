@@ -6,12 +6,21 @@
 
 {% include '_nav.html' %}
 
+<<<<<<< Updated upstream
 <div class="col-4">
     <ul class="list-group">
         {% for atendimento in atendimentos %}
         <li class="list-group-item"><a class="btn btn-primary" href="{{url_for('atendimento', ID= atendimento.atendimento_ID)}}" role="button">{{atendimento.data_hora}} - {{atendimento.paciente.pessoa.nome}}</a></li>
         {% endfor %}
       </ul
+=======
+<div class="text-center">
+  <tr>
+    <td><a href="{{ url_for('dia_anterior', ano=ano, mes=mes, dia = dia)}}" class="btn btn-outline-primary btn-lg mt-2 mb-2" role="button" aria-pressed="true">&lt;</a></td>
+    <td><a href="#" class="btn btn-primary btn-lg mt-2 mb-2" role="button" aria-pressed="true">{{dia}} de {{meses[mes - 1]}}</a></td>
+    <td><a href="{{ url_for('proximo_dia', ano=ano, mes=mes, dia = dia)}}" class="btn btn-outline-primary btn-lg mt-2 mb-2" role="button" aria-pressed="true">&gt;</a></td>
+  </tr>
+>>>>>>> Stashed changes
 </div>
 
 {% endblock content %}
