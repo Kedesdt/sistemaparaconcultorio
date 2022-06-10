@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="text-center h1 text-success">{{title}}</div>
+    <div class="container">
+        {% from "_formhelpers.html" import render_field %}
+        <form method="post" enctype="multipart/form-data">
+        <div>
+            {{ render_field(form.nome, class="form-control") }}
+            {{ render_field(form.cpf, class="form-control") }}
+            {{ render_field(form.rg, class="form-control") }}
+            {{ render_field(form.tel, class="form-control") }}
+            {{ render_field(form.email, class="form-control") }}
+            {{ render_field(form.nome_r, class="form-control") }}
+            {{ render_field(form.cpf_r, class="form-control") }}
+            {{ render_field(form.rg_r, class="form-control") }}
+            {{ render_field(form.tel_r, class="form-control") }}
+            {{ render_field(form.email_r, class="form-control") }}
+            <dt>
+            <label for="sel_p">Psicopedagogo</label>
+            </dt>
+            <dd>
+            <select name="psicopedagogo" id="sel_p" class="form-control">
+                {% for psicopedagogo in psicopedagogos %}
+                <option value="{{psicopedagogo.psicopedagogo_ID}}">{{psicopedagogo.pessoa.nome}}</option>
+                {% endfor %}
+              </select>
+            </dd>
+            <dt>
+            <label for="sel_c">Situação</label>
+            </dt>
+            <dd>
+            <select name="situacao" id="sel_c" class="form-control">
+                {% for situacao in situacoes %}
+                <option value="{{situacao.situacao_ID}}">{{situacao.nome}}</option>
+                {% endfor %}
+              </select>
+            </dd>
+
+
+        </div>
+    <p><input type=submit value=Registrar>
+    </form>
+    </div>
+{% endblock content %}
