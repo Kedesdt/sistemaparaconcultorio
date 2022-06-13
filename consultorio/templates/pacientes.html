@@ -6,12 +6,15 @@
 
 {% include '_nav.html' %}
 
-<div class="col-4">
-    <ul class="list-group">
-        {% for paciente in pacientes %}
-        <li class="list-group-item"><a class="btn btn-primary" href="{{url_for('paciente', ID=paciente.paciente_ID)}}" role="button">{{paciente.pessoa.nome}}</a></li>
-        {% endfor %}
-      </ul
-</div>
+<table class="table">
+  <tbody>
+    {% for paciente in pacientes %}
+      <tr>
+          <td><a class="btn btn-outline-secondary" href="{{url_for('paciente', ID=paciente.paciente_ID)}}" role="button">{{paciente.pessoa.nome}}</a></td>
+          <td><a class="float-right btn btn-danger" href="{{url_for('apagar_paciente', ID = paciente.paciente_ID)}}" role="button">Apagar</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 {% endblock content %}

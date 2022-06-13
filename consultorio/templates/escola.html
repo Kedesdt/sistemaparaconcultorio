@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="text-center h1 text-primary">{{psicopedagogo.pessoa.nome}}</div>
+<div class="text-center h1 text-primary">{{escola.escola_nome}}</div>
 
 {% include '_nav.html' %}
 
@@ -11,12 +11,18 @@
     <tbody>
       <tr>
         <td>Nome</td>
-        <td>{{psicopedagogo.pessoa.nome}}</td>
+        <td>{{escola.escola_nome}}</td>
       </tr>
       {% for contato in contatos %}
       <tr>
         <td>{{contato.tipo.tipo}}</td>
         <td>{{contato.contato}}</td>
+      </tr>
+      {% endfor %}
+      {% for endereco in enderecos %}
+      <tr>
+        <td>Endereço {{loop.index}}</td>
+        <td>{{endereco.endereco}}</td>
       </tr>
       {% endfor %}
     </tbody>

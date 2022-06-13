@@ -4,42 +4,48 @@ from consultorio import db
 
 class Usuario(db.Model):
 
-
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(80), unique=False, nullable=False)
     nome_consultorio = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
+    foto =  db.Column(db.LargeBinary, unique=False,nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.nome_usuario
+        return '<User %r>' % self.foto
+
+class Acesso(db.Model):
+
+    acesso_ID = db.Column(db.Integer, primary_key= True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    senha = db.Column(db.String(120), unique=False, nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario = db.relationship('Usuario', backref = db.backref('pessoas', lazy = True))
+    foto = db.Column(db.LargeBinary, unique=False, nullable=False)
+
+class Sexo(db.Model):
+
+    sexo_ID = db.Column(db.Integer, primary_key=True)
+    sexo_Nome = db.Column(db.String(15), primary_key=True)
 
 class Pessoa(db.Model):
 
     pessoa_ID = db.Column(db.Integer, primary_key=True)
-<<<<<<< Updated upstream
-    nome = db.Column(db.String(30), unique = False, nullable=False)
-    cpf = db.Column(db.String(11), unique = True, nullable=True)
-    rg = db.Column(db.String(9), unique = True, nullable=True)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    usuario = db.relationship('Usuario', backref = db.backref('pessoas', lazy = True))
-=======
     nome = db.Column(db.String(30))
     data_de_nascimento = db.Column(db.Date)
     sexo_ID = db.Column(db.Integer, db.ForeignKey('sexo.sexo_ID'))
     sexo = db.relationship('Sexo', foreign_keys= sexo_ID)
     cpf = db.Column(db.String(11), unique = False, nullable=True)
     rg = db.Column(db.String(9), unique = False, nullable=True)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario')
->>>>>>> Stashed changes
 
 class Psicopedagogo(db.Model):
     
     psicopedagogo_ID = db.Column(db.Integer, primary_key=True)
     pessoa_ID = db.Column(db.Integer, db.ForeignKey('pessoa.pessoa_ID'), nullable=False)
     pessoa = db.relationship('Pessoa', foreign_keys=pessoa_ID)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Tipo_contato(db.Model):
@@ -47,13 +53,11 @@ class Tipo_contato(db.Model):
     tipo_ID = db.Column(db.Integer, primary_key=True)
     tipo = db.Column(db.Integer, nullable=False)
 
-<<<<<<< Updated upstream
-=======
 class Escola(db.Model):
 
     escola_ID = db.Column(db.Integer, primary_key=True)
     escola_nome = db.Column(db.String(30))
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Coordenador(db.Model):
@@ -62,15 +66,18 @@ class Coordenador(db.Model):
     coordenador_nome = db.Column(db.String(30))
     escola_ID = db.Column(db.Integer, db.ForeignKey('escola.escola_ID'))
     escola = db.relationship('Escola', foreign_keys=escola_ID)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
->>>>>>> Stashed changes
 class Contato(db.Model):
 
     contato_ID = db.Column(db.Integer, primary_key=True)
-    pessoa_ID = db.Column(db.Integer, db.ForeignKey('pessoa.pessoa_ID'), nullable=False)
+    pessoa_ID = db.Column(db.Integer, db.ForeignKey('pessoa.pessoa_ID'))
     pessoa = db.relationship('Pessoa', foreign_keys=pessoa_ID)
+    escola_ID = db.Column(db.Integer, db.ForeignKey('escola.escola_ID'))
+    escola = db.relationship('Escola', foreign_keys=escola_ID)
+    coordenador_ID = db.Column(db.Integer, db.ForeignKey('coordenador.coordenador_ID'))
+    coordenador = db.relationship('Coordenador', foreign_keys=coordenador_ID)
     tipo_ID = db.Column(db.Integer, db.ForeignKey('tipo_contato.tipo_ID'), nullable=False)
     tipo = db.relationship('Tipo_contato', foreign_keys=tipo_ID)
     contato = db.Column(db.String(50), nullable=False)
@@ -83,11 +90,12 @@ class Agenda_atendimento(db.Model):
     dia = db.Column(db.Integer, nullable= False)
     hora = db.Column(db.Integer, nullable= False)
 
+
 class Situacao(db.Model):
     
     situacao_ID = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String, nullable= False)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Paciente(db.Model):
@@ -101,22 +109,19 @@ class Paciente(db.Model):
     situacao = db.relationship('Situacao', backref = db.backref('pacientes', lazy = True))
     psicopedagogo_ID = db.Column(db.Integer, db.ForeignKey('psicopedagogo.psicopedagogo_ID'))
     psicopedagogo = db.relationship('Psicopedagogo', foreign_keys= psicopedagogo_ID)
-<<<<<<< Updated upstream
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-=======
     escola_ID = db.Column(db.Integer, db.ForeignKey('escola.escola_ID'))
     escola = db.relationship('Escola', foreign_keys=escola_ID)
     coordenador_ID = db.Column(db.Integer, db.ForeignKey('coordenador.coordenador_ID'))
     coordenador = db.relationship('Coordenador', foreign_keys=coordenador_ID)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
->>>>>>> Stashed changes
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
+    obs = db.Column(db.String(500))
 
 class Sala(db.Model):
 
     sala_ID = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(20), nullable = False)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Atendimento(db.Model):
@@ -131,7 +136,7 @@ class Atendimento(db.Model):
     sala_ID = db.Column(db.Integer, db.ForeignKey('sala.sala_ID'))
     sala = db.relationship('Sala', backref = db.backref('salas', lazy = True))
 
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
     obs = db.Column(db.String(500))
@@ -141,24 +146,27 @@ class Tipo_endereco(db.Model):
     __tablename__ = 'tipo_endereco'
         
     tipo_ID = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(20))
+    tipo = db.Column(db.String(20))
 
 class Endereco(db.Model):
         
     endereco_ID = db.Column(db.Integer, primary_key=True)
     tipo_ID = db.Column(db.Integer, db.ForeignKey('tipo_endereco.tipo_ID'))
-    tipo_endereco = db.relationship('Tipo_endereco')
+    tipo = db.relationship('Tipo_endereco')
+    pessoa_ID = db.Column(db.Integer, db.ForeignKey('pessoa.pessoa_ID'))
+    pessoa = db.relationship('Pessoa', foreign_keys=pessoa_ID)
+    escola_ID = db.Column(db.Integer, db.ForeignKey('escola.escola_ID'))
+    escola = db.relationship('Escola', foreign_keys=escola_ID)
+    coordenador_ID = db.Column(db.Integer, db.ForeignKey('coordenador.coordenador_ID'))
+    coordenador = db.relationship('Coordenador', foreign_keys=coordenador_ID)
     endereco = db.Column(db.String(50), nullable = False)
 
 class Teste(db.Model):
 
     teste_ID = db.Column(db.Integer, primary_key=True)
-<<<<<<< Updated upstream
-=======
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
->>>>>>> Stashed changes
     nome = db.Column(db.String(50))
 
 class Tipo_resposta(db.Model):
@@ -187,7 +195,6 @@ class Resultado(db.Model):
     teste_ID = db.Column(db.Integer, db.ForeignKey('teste.teste_ID'))
     paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
     resultado = db.Column(db.String(100))
-
 
 
 db.create_all()

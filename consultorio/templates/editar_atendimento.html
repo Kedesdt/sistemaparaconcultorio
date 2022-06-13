@@ -12,8 +12,9 @@
             </dt>
             <dd>
             <select name="psicopedagogo" id="sel_p" class="form-control">
+                <option value="{{atendimento.psicopedagogo.psicopedagogo_ID}}">{{atendimento.psicopedagogo.pessoa.nome}}</option>
                 {% for psicopedagogo in psicopedagogos %}
-                <option value="{{psicopedagogo.psicopedagogo_ID}}">{{psicopedagogo.pessoa.nome}}</option>
+                {% if not psicopedagogo.pessoa.nome == atendimento.psicopedagogo.pessoa.nome %}<option value="{{psicopedagogo.psicopedagogo_ID}}">{{psicopedagogo.pessoa.nome}}</option>{% endif %}
                 {% endfor %}
               </select>
             </dd>
@@ -22,8 +23,9 @@
             </dt>
             <dd>
             <select name="paciente" id="sel_paciente" class="form-control">
+                <option value="{{atendimento.paciente.paciente_ID}}">{{atendimento.paciente.pessoa.nome}}</option>
                 {% for paciente in pacientes %}
-                <option value="{{paciente.paciente_ID}}">{{paciente.pessoa.nome}}</option>
+                {% if not paciente.pessoa.nome == atendimento.paciente.pessoa.nome %}<option value="{{paciente.paciente_ID}}">{{paciente.pessoa.nome}}</option>{% endif %}
                 {% endfor %}
               </select>
             </dd>
@@ -32,16 +34,17 @@
                 </dt>
                 <dd>
                 <select name="sala" id="sel_sala" class="form-control">
+                    <option value="{{atendimento.sala.sala_ID}}">{{atendimento.sala.nome}}</option>
                     {% for sala in salas %}
-                    <option value="{{sala.sala_ID}}">{{sala.nome}}</option>
+                    {% if not sala.nome == atendimento.sala.nome %}<option value="{{sala.sala_ID}}">{{sala.nome}}</option>{% endif %}
                     {% endfor %}
                   </select>
-                  <a class="float-right btn btn-sm btn-outline-secondary"  href="{{url_for('add_sala')}}" role="button">Adicionar Sala</a>
                 </dd>
+                {{ render_field(form.hora, class="form-control",  value='%s:00' %hora) }}
                 {{ render_field(form.obs, class="form-control") }}
 
         </div>
-    <p><input type=submit value=Registrar>
+    <p><input type=submit value=Atualizar>
     </form>
     </div>
 {% endblock content %}
