@@ -1,0 +1,215 @@
+CREATE TABLE usuario (
+id INTEGER NOT NULL AUTO_INCREMENT,
+nome VARCHAR(80) NOT NULL,
+nome_consultorio VARCHAR(80) NOT NULL,
+email VARCHAR(120) NOT NULL,
+senha VARCHAR(120) NOT NULL,
+foto blob(1000000) NOT NULL,
+PRIMARY KEY (id),
+UNIQUE (nome_consultorio),
+UNIQUE (email)
+);
+
+CREATE TABLE sexo (
+sexo_ID INTEGER NOT NULL AUTO_INCREMENT,
+sexo_Nome VARCHAR(15) NOT NULL,
+PRIMARY KEY (sexo_ID, sexo_Nome)
+);
+
+CREATE TABLE tipo_contato (
+tipo_ID INTEGER NOT NULL AUTO_INCREMENT,
+tipo VARCHAR(20),
+PRIMARY KEY (tipo_ID)
+);
+
+CREATE TABLE tipo_endereco (
+tipo_ID INTEGER NOT NULL AUTO_INCREMENT,
+tipo VARCHAR(20),
+PRIMARY KEY (tipo_ID)
+);
+
+CREATE TABLE tipo_resposta (
+tipo_resposta_ID INTEGER NOT NULL AUTO_INCREMENT,
+tipo VARCHAR(20) NOT NULL,
+PRIMARY KEY (tipo_resposta_ID)
+);
+
+CREATE TABLE teste (
+teste_ID INTEGER NOT NULL AUTO_INCREMENT, 
+usuario_ID INTEGER, 
+nome VARCHAR (50), 
+PRIMARY KEY (teste_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id)
+);
+
+CREATE TABLE acesso (
+acesso_ID INTEGER NOT NULL AUTO_INCREMENT,
+email VARCHAR(120) NOT NULL,
+senha VARCHAR(120) NOT NULL,
+usuario_ID INTEGER NOT NULL,
+PRIMARY KEY (acesso_ID),
+UNIQUE (email),
+FOREIGN KEY(usuario_ID) REFERENCES usuario (id)
+);
+
+CREATE TABLE pessoa (
+CREATE TABLE pergunta (
+pergunta_ID INTEGER NOT NULL AUTO_INCREMENT,
+teste_ID INTEGER,
+pergunta VARCHAR(150) NOT NULL,
+tipo_resposta_ID INTEGER,
+PRIMARY KEY (pergunta_ID),
+FOREIGN KEY(teste_ID) REFERENCES teste (teste_ID),
+FOREIGN KEY(tipo_resposta_ID) REFERENCES tipo_resposta (tipo_resposta_ID)
+);
+
+CREATE TABLE escola (
+escola_ID INTEGER NOT NULL AUTO_INCREMENT, escola_nome VARCHAR (30), 
+usuario_ID INTEGER, PRIMARY KEY (escola_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id)
+);
+
+CREATE TABLE coordenador (
+coordenador_ID INTEGER NOT NULL AUTO_INCREMENT, 
+coordenador_nome VARCHAR (30), 
+escola_ID INTEGER, 
+usuario_ID INTEGER, 
+PRIMARY KEY (coordenador_ID), 
+FOREIGN KEY (escola_ID) REFERENCES escola (escola_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id));
+
+CREATE TABLE contato (
+contato_ID INTEGER NOT NULL AUTO_INCREMENT,
+pessoa_ID INTEGER,
+escola_ID INTEGER,
+coordenador_ID INTEGER,
+tipo_ID INTEGER NOT NULL,
+contato VARCHAR(50) NOT NULL,
+PRIMARY KEY (contato_ID),
+FOREIGN KEY(pessoa_ID) REFERENCES pessoa (pessoa_ID),
+FOREIGN KEY(escola_ID) REFERENCES escola (escola_ID),
+FOREIGN KEY(coordenador_ID) REFERENCES coordenador (coordenador_ID),                                                                                        
+FOREIGN KEY(tipo_ID) REFERENCES tipo_contato (tipo_ID)
+);
+
+
+CREATE TABLE endereco (
+endereco_ID INTEGER NOT NULL AUTO_INCREMENT,
+tipo_ID INTEGER,
+pessoa_ID INTEGER,
+escola_ID INTEGER,
+coordenador_ID INTEGER,
+endereco VARCHAR(50) NOT NULL,
+PRIMARY KEY (endereco_ID),
+FOREIGN KEY(tipo_ID) REFERENCES tipo_endereco (tipo_ID),
+FOREIGN KEY(pessoa_ID) REFERENCES pessoa (pessoa_ID),
+FOREIGN KEY(escola_ID) REFERENCES escola (escola_ID),
+FOREIGN KEY(coordenador_ID) REFERENCES coordenador (coordenador_ID)
+);
+
+CREATE TABLE sugestao_de_resposta (
+sugestao_ID INTEGER NOT NULL AUTO_INCREMENT,
+pergunta_ID INTEGER,
+sugestao VARCHAR(50) NOT NULL,
+PRIMARY KEY (sugestao_ID),
+FOREIGN KEY(pergunta_ID) REFERENCES pergunta (pergunta_ID)
+);
+
+
+CREATE TABLE psicopedagogo (
+psicopedagogo_ID INTEGER NOT NULL AUTO_INCREMENT, 
+pessoa_ID INTEGER NOT NULL, 
+usuario_ID INTEGER, 
+PRIMARY KEY (psicopedagogo_ID), 
+FOREIGN KEY (pessoa_ID) REFERENCES pessoa (pessoa_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id));
+
+
+CREATE TABLE situacao (
+situacao_ID INTEGER NOT NULL AUTO_INCREMENT, 
+nome VARCHAR(50) NOT NULL, 
+usuario_ID INTEGER, 
+PRIMARY KEY (situacao_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id));
+
+CREATE TABLE paciente (
+paciente_ID INTEGER NOT NULL AUTO_INCREMENT,
+pessoa_ID INTEGER NOT NULL, 
+responsavel_ID INTEGER, 
+situacao_ID INTEGER NOT NULL, 
+psicopedagogo_ID INTEGER, 
+escola_ID INTEGER, 
+coordenador_ID INTEGER, 
+usuario_ID INTEGER, 
+obs VARCHAR (500), 
+PRIMARY KEY (paciente_ID), 
+FOREIGN KEY (pessoa_ID) REFERENCES pessoa (pessoa_ID), 
+FOREIGN KEY (responsavel_ID) REFERENCES pessoa (pessoa_ID), 
+FOREIGN KEY (situacao_ID) REFERENCES situacao (situacao_ID), 
+FOREIGN KEY (psicopedagogo_ID) REFERENCES psicopedagogo (psicopedagogo_ID), 
+FOREIGN KEY (escola_ID) REFERENCES escola (escola_ID), 
+FOREIGN KEY (coordenador_ID) REFERENCES coordenador (coordenador_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id));
+
+
+CREATE TABLE resultado (
+resultado_ID INTEGER NOT NULL AUTO_INCREMENT,
+teste_ID INTEGER,
+paciente_ID INTEGER,
+resultado VARCHAR(100),
+PRIMARY KEY (resultado_ID),
+FOREIGN KEY(teste_ID) REFERENCES teste (teste_ID),
+FOREIGN KEY(paciente_ID) REFERENCES paciente (paciente_ID)
+);
+
+CREATE TABLE agenda_atendimento (
+psicopedagogo_ID INTEGER NOT NULL AUTO_INCREMENT,
+dia INTEGER NOT NULL,
+hora INTEGER NOT NULL,
+PRIMARY KEY (psicopedagogo_ID),
+FOREIGN KEY(psicopedagogo_ID) REFERENCES psicopedagogo (psicopedagogo_ID)
+);
+
+CREATE TABLE sala (
+sala_ID INTEGER NOT NULL AUTO_INCREMENT, 
+nome VARCHAR (20) NOT NULL, 
+usuario_ID INTEGER, 
+PRIMARY KEY (sala_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id));
+
+CREATE TABLE atendimento (
+atendimento_ID INTEGER NOT NULL AUTO_INCREMENT, 
+psicopedagogo_ID INTEGER, 
+data_hora DATETIME NOT NULL, 
+paciente_ID INTEGER, 
+sala_ID INTEGER, 
+usuario_ID INTEGER, 
+obs VARCHAR (500), 
+PRIMARY KEY (atendimento_ID), 
+FOREIGN KEY (psicopedagogo_ID) REFERENCES psicopedagogo (psicopedagogo_ID), 
+FOREIGN KEY (paciente_ID) REFERENCES paciente (paciente_ID), 
+FOREIGN KEY (sala_ID) REFERENCES sala (sala_ID), 
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id));
+
+
+
+CREATE TABLE conversa (
+conversa_ID INTEGER NOT NULL AUTO_INCREMENT,
+usuario_ID INTEGER NOT NULL,
+paciente_ID INTEGER NOT NULL,
+PRIMARY KEY (usuario_ID),
+UNIQUE (conversa_ID),
+FOREIGN KEY (paciente_ID) REFERENCES paciente (paciente_ID),
+FOREIGN KEY (usuario_ID) REFERENCES usuario (id)
+);
+
+
+CREATE TABLE mensagem (
+mensagem_ID INTEGER NOT NULL AUTO_INCREMENT,
+de INTEGER,
+conversa_ID INTEGER NOT NULL,
+mensagem_texto VARCHAR(1000),
+time DATETIME,
+PRIMARY KEY (mensagem_ID),
+FOREIGN KEY (conversa_ID) REFERENCES conversa (conversa_ID)
+);
