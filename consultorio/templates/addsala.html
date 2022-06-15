@@ -12,7 +12,7 @@
         <div>
 
             <input type="hidden" name="next" value="{{ request.args.get('next', '')}}"/>
-            {{ render_field(form.nome) }}
+            {{ render_field(form.nome, class="form-control") }}
 
         </div>
     <p><input type=submit value=Registrar>

@@ -9,10 +9,9 @@ class Usuario(db.Model):
     nome_consultorio = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
-    foto =  db.Column(db.LargeBinary, unique=False,nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.foto
+        return '<User %r>' % self.nome_usuario
 
 class Acesso(db.Model):
 
@@ -21,7 +20,6 @@ class Acesso(db.Model):
     senha = db.Column(db.String(120), unique=False, nullable=False)
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     usuario = db.relationship('Usuario', backref = db.backref('pessoas', lazy = True))
-    foto = db.Column(db.LargeBinary, unique=False, nullable=False)
 
 class Sexo(db.Model):
 
@@ -37,7 +35,7 @@ class Pessoa(db.Model):
     sexo = db.relationship('Sexo', foreign_keys= sexo_ID)
     cpf = db.Column(db.String(11), unique = False, nullable=True)
     rg = db.Column(db.String(9), unique = False, nullable=True)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario')
 
 class Psicopedagogo(db.Model):
@@ -45,7 +43,7 @@ class Psicopedagogo(db.Model):
     psicopedagogo_ID = db.Column(db.Integer, primary_key=True)
     pessoa_ID = db.Column(db.Integer, db.ForeignKey('pessoa.pessoa_ID'), nullable=False)
     pessoa = db.relationship('Pessoa', foreign_keys=pessoa_ID)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Tipo_contato(db.Model):
@@ -57,7 +55,7 @@ class Escola(db.Model):
 
     escola_ID = db.Column(db.Integer, primary_key=True)
     escola_nome = db.Column(db.String(30))
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Coordenador(db.Model):
@@ -66,7 +64,7 @@ class Coordenador(db.Model):
     coordenador_nome = db.Column(db.String(30))
     escola_ID = db.Column(db.Integer, db.ForeignKey('escola.escola_ID'))
     escola = db.relationship('Escola', foreign_keys=escola_ID)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Contato(db.Model):
@@ -95,7 +93,7 @@ class Situacao(db.Model):
     
     situacao_ID = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String, nullable= False)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Paciente(db.Model):
@@ -113,7 +111,7 @@ class Paciente(db.Model):
     escola = db.relationship('Escola', foreign_keys=escola_ID)
     coordenador_ID = db.Column(db.Integer, db.ForeignKey('coordenador.coordenador_ID'))
     coordenador = db.relationship('Coordenador', foreign_keys=coordenador_ID)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
     obs = db.Column(db.String(500))
 
@@ -121,7 +119,7 @@ class Sala(db.Model):
 
     sala_ID = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(20), nullable = False)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
 class Atendimento(db.Model):
@@ -136,7 +134,7 @@ class Atendimento(db.Model):
     sala_ID = db.Column(db.Integer, db.ForeignKey('sala.sala_ID'))
     sala = db.relationship('Sala', backref = db.backref('salas', lazy = True))
 
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
     obs = db.Column(db.String(500))
@@ -164,7 +162,7 @@ class Endereco(db.Model):
 class Teste(db.Model):
 
     teste_ID = db.Column(db.Integer, primary_key=True)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
     nome = db.Column(db.String(50))

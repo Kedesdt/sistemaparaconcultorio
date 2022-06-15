@@ -1,71 +1,31 @@
-<!doctype html>
-<html lang="pt-br">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <title>Tela de Login</title>
-    <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href=" {{url_for('static', filename='css/login.css')}}">
-<!-- <link href="bootstrap.min.css" rel="stylesheet"> -->
 {% extends "base.html" %}
+
+
 {% block content %}
 
-    <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-      }
 
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-    </style>
+<div class="container">
+    {% from "_formhelpers.html" import render_field %}
+    <div class="row">
+        
+        
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <div class="text-center h1 text-primary">Login</div>
+            
+            
+            <form method="post" enctype="multipart/form-data">
+                <div>
+                    {{ render_field(form.email, class="form-control") }}
+                    {{ render_field(form.senha, class="form-control") }}
 
-    
-    <!-- Custom styles for this template -->
-    
-  </head>
-  <body class="text-center">
-    
-<main class="form-login">
-  <form  method="post" action="{{url_for('login')}}" enctype="multipart/form-data">
-
-    <div class="modal-body p-5 pt-0">
-
-
-    <h1 class="h3 mb-3 fw-normal">Login</h1>
-
-    <div class="form-floating mb-3">
-      <input type="email" width="50" class="form-control rounded-4"  name="Email" id="Email" placeholder="name@example.com">
-      <label for="floatingInput">E-Mail</label>
+                </div>
+                <p><input type=submit value=Login>
+                    <a class="float-right btn btn-sm btn-success" href="{{url_for('registrar')}}">Registrar</a>
+            </form>
+        </div>
+        
     </div>
-    <div class="form-floating mb-3">
-      <input type="password"  class="form-control rounded-4" name="Senha"  id="Senha" placeholder="Senha">
-      <label for="floatingPassword">Senha</label>
-    </div>
-
-    <div class="checkbox mb-3">
-      <label>
-        <input type="checkbox" value="remember-me"> Lembrar Senha
-      </label>
-    </div>
-    <div class="form-floating mb-3">
-  
-    <button class="w-100 btn btn-lg btn-primary" type="submit">Entrar</button>
-  </div>
-  <div class="form-floating mb-3">
-    <button class="w-100 btn btn-lg btn-outline-secondary" style="color:black">Resgistrar-se</button>
-  </div>
-  </form>
 </div>
-  </main>
-</main>
-</body>
-</html>
+
 {% endblock content %}

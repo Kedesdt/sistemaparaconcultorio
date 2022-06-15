@@ -1,79 +1,32 @@
-import base64
-import io
 import time, datetime, pytz
-from sqlalchemy.sql import *
-from base64 import b64encode
+from .funcoes import *
 from flask import render_template, session, request, redirect, url_for, flash
-from consultorio.controllers.funcoes import *
 from consultorio.models.forms import *
 from consultorio import app, db, bcrypt
 from consultorio.models.models import Atendimento, Coordenador, Escola, Psicopedagogo, Situacao, Tipo_contato, Tipo_endereco, Usuario, Sala, Paciente, Pessoa, Contato, Endereco
-"""
-Escola
-Endereço da escola 
-Telefone da escola 
-Coordenadora (o)
-série atual 
-Período 
-"""
+
+
 
 BR = pytz.timezone('America/Sao_Paulo')
-@app.route('/addPaciente/<string:value>')
-def pagina(value):
-   if value == 'addPedagogo':
-       return redirect(url_for('add_psicopedagogo'))
-   elif value == 'addPaciente':
-      return redirect(url_for('add_paciente'))
-   elif value == 'addCoordenador':
-       return redirect(url_for('add_coordenador'))
-   elif value == 'addEscola':
-       return redirect(url_for('add_escola'))
-   elif value == 'addSituacao':
-       return redirect(url_for('add_situacao'))
-   elif value == 'addSala':
-       return redirect(url_for('add_sala'))
-   elif value == 'home':
-       return redirect(url_for('home'))
-   elif value == 'calendario':
-       return redirect(url_for('esse_mes'))
-   elif value == 'psicopedagogos':
-       return redirect(url_for('psicopedagogos'))
-   elif value == 'escolas':
-       return redirect(url_for('escolas'))
-   elif value == 'salas':
-       return redirect(url_for('salas'))
-   elif value == 'pacientes':
-       return redirect(url_for('pacientes'))
-   elif value == 'coordenadores':
-       return redirect(url_for('coordenadores'))
-   else:
-       return redirect(url_for('loginacesso'))
-@app.route('/')
-def loginacesso():
-    return render_template('login.html')
 
-@app.route('/index')
-def index():
-    return render_template('index.html')
-@app.route('/home')
+@app.route('/')
 def home():
     if 'email' not in session:
-       #return redirect(url_for('primeiro'))
-        return redirect(url_for('loginacesso'))
+        return redirect(url_for('login'))
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
 
     if usuario is None:
         del session['email']
-        return redirect(url_for('loginacesso'))
+        return redirect(url_for('login'))
+
 
     ano = time.localtime(time.time()).tm_year
     mes = time.localtime(time.time()).tm_mon
     dia = time.localtime().tm_mday
 
     #return render_template('index.html', title = 'Inicio', email = session['email'], nome = usuario.nome_consultorio)
-    return redirect(url_for('index'))
-
+    return redirect(url_for('dia', ano = ano, mes = mes, dia= dia))
 
 @app.route('/esse_mes')
 def esse_mes():
@@ -81,7 +34,6 @@ def esse_mes():
     hoje = datetime.datetime.now(BR)
 
     return redirect(url_for('agenda', ano = hoje.year, mes = hoje.month))
-
 
 @app.route('/agenda/<int:ano>/<int:mes>/<int:dia>')
 def dia(ano, mes, dia):
@@ -93,6 +45,9 @@ def dia(ano, mes, dia):
     if usuario is None:
         del session['email']
         return redirect(url_for('login'))
+
+    
+    meses = ["Janeiro", 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
     date = datetime.date(year=ano,month=mes,day=dia)
     di = datetime.datetime.combine(date, datetime.time(0,0,0))
@@ -123,7 +78,7 @@ def dia(ano, mes, dia):
         horas[i.data_hora.hour]['marcado'] = True
 
     return render_template('dia.html', nome = usuario.nome_consultorio, title = 'Agenda', email = session['email'],
-                            horas = horas, dia = dia, mes = mes, ano = ano, salas = salas, psicopedagogos = psicopedagogos, hoje = hoje)
+                            horas = horas, dia = dia, mes = mes, ano = ano, salas = salas, psicopedagogos = psicopedagogos, hoje = hoje, meses = meses)
 
 @app.route('/proximo_dia/<int:ano>/<int:mes>/<int:dia>')
 def proximo_dia(ano, mes, dia):
@@ -161,11 +116,20 @@ def atendimento(ID):
     if usuario is None:
         del session['email']
         return redirect(url_for('login'))
+
+    form = Formulario_resgistro_agendamento(request.form)
     
     atendimento = Atendimento.query.filter_by(atendimento_ID = ID).first()
 
-    return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento)
+    if request.method == "POST" and form.validate():
 
+        atendimento.obs = form.obs.data
+        db.session.commit()
+        return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento, form = form)
+
+    form.obs.data = atendimento.obs
+
+    return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento, form = form)
 
 @app.route('/atendimento/apagar/<int:ID>', methods = ['GET', 'POST'])
 def apagar_atendimento(ID):
@@ -210,7 +174,7 @@ def editar_atendimento(ID):
         atendimento.data_hora = data_hora
         atendimento.obs = form.obs.data
         db.session.commit()
-        return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento)
+        return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento, form = form)
     
     
     psicopedagogos = Psicopedagogo.query.filter_by(usuario_ID = usuario.id).all()
@@ -222,6 +186,33 @@ def editar_atendimento(ID):
     hora = str(atendimento.data_hora.hour).zfill(2)
     
     return render_template('editar_atendimento.html', nome = 'atendimento.paciente.pessoa.nome', atendimento= atendimento, psicopedagogos=psicopedagogos,
+                            pacientes = pacientes, salas = salas, form = form, hora=hora)
+
+@app.route('/atendimento/editar_horario/<int:ID>', methods = ['GET', 'POST'])
+def editar_horario(ID):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+
+    if usuario is None:
+        del session['email']
+        return redirect(url_for('login'))
+    
+    form = Formulario_resgistro_agendamento(request.form)
+
+    atendimento = Atendimento.query.filter_by(atendimento_ID = ID).first()
+
+    if request.method == "POST" and form.validate():
+
+        data_hora = datetime.datetime.combine(datetime.date(atendimento.data_hora.year, atendimento.data_hora.month, atendimento.data_hora.day), form.hora.data)
+        atendimento.data_hora = data_hora
+        db.session.commit()
+        return render_template('atendimento.html', nome = atendimento.paciente.pessoa.nome, atendimento= atendimento, form = form)
+
+    hora = str(atendimento.data_hora.hour).zfill(2)
+    
+    return render_template('editar_horario.html', nome = 'atendimento.paciente.pessoa.nome', atendimento= atendimento, psicopedagogos=psicopedagogos,
                             pacientes = pacientes, salas = salas, form = form, hora=hora)
 
 
@@ -268,7 +259,6 @@ def agendamento(ano, mes, dia, hora):
     email = session['email'], agendamentos = agendamentos, form = form, psicopedagogos = psicopedagogos, 
     salas= salas, pacientes=pacientes)
 
-
 @app.route('/agenda/<int:ano>/<int:mes>')
 def agenda(ano, mes):
     if 'email' not in session:
@@ -282,7 +272,7 @@ def agenda(ano, mes):
 
     meses = ["Janeiro", 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
     
-    l_mes = gera_mes(ano, mes)
+    l_mes, pdm = gera_mes(ano, mes)
 
     proximo_mes = 1 if mes + 1 > 12 else mes + 1
     proximo_ano = ano + 1 if proximo_mes == 1 else ano
@@ -297,7 +287,7 @@ def agenda(ano, mes):
 
     for atendimento in atendimentos:
 
-        l_mes[atendimento.data_hora.day]['compromissos'].append(atendimento)
+        l_mes[atendimento.data_hora.day - 1 + pdm]['compromissos'].append(atendimento)
 
     horas = ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
              "12:00","13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"]
@@ -306,48 +296,42 @@ def agenda(ano, mes):
     nome = usuario.nome_consultorio, usuario = usuario, l_mes = l_mes, mes = mes, ano = ano, proximo_mes = proximo_mes, proximo_ano = proximo_ano,
     mes_anterior = mes_anterior, ano_anterior = ano_anterior, nome_atual = meses[mes - 1], nome_anterior = meses[mes_anterior - 1], proximo_nome = meses[proximo_mes - 1], horas = horas)
 
-
 @app.route('/registrar', methods = ['GET', 'POST'])
 def registrar():
     form = Formulario_de_registro(request.form)
     if request.method == "POST" and form.validate():
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
-        usuario = Usuario(nome = form.nome.data , nome_consultorio = form.nome_consultorio.data, email = form.email.data, senha = hash_pass,foto='1000')
+        usuario = Usuario(nome = form.nome.data , nome_consultorio = form.nome_consultorio.data, email = form.email.data, senha = hash_pass)
         db.session.add(usuario)
         db.session.commit()
 
         flash(f'Bem vindo {form.nome.data} Obrigado por registrar')
-        return redirect(url_for('index'))
-    #return render_template('registrar.html', title= "Página de Registro", form = form)
-
+        return redirect(url_for('home'))
+    return render_template('registrar.html', title= "Página de Registro", form = form)
 
 @app.route('/login', methods = ["GET", "POST"])
 def login():
-   form = Formulario_login(request.form)
-   Email = request.form.get("Email")
-   Senha = request.form.get("Senha")
+    form = Formulario_login(request.form)
+    
+    if request.method == "POST" and form.validate():
 
-   if request.method == "POST":
-       usuario = Usuario.query.filter_by(email = Email).first()
-       senha = Usuario.query.filter_by(senha = Senha).first()
+        usuario = Usuario.query.filter_by(email = form.email.data).first()
 
-       if usuario and senha:
-           session['email'] = Email
-           bfoto = Usuario.query.filter_by(email=Email).first()
-           with open(bfoto,'rb') as f:
-               foto = io.IOBase(f.read())
-           flash(f'Bem vindo {Email} Você está logado', 'success')
-           return render_template('index.html',Foto = foto)
-       else:
-        #  flash(f'Não foi possivel logar')
+        if usuario and bcrypt.check_password_hash(usuario.senha, form.senha.data):
+            session['email'] = form.email.data
+            flash(f'Bem vindo {form.email.data} Você está logado', 'success')
+            return redirect(request.args.get('next') or url_for('home'))
+        
+        else:
+            flash(f'Não foi possivel logar')
 
-        #return redirect(url_for('index'))
-        return render_template('login.html', title = 'Login', form = form)
+        return redirect(url_for('home'))
+    return render_template('login.html', title = 'Login', form = form)
 
 @app.route('/logout')
 def logout():
     del session['email']
-    return redirect(url_for('loginacesso'))
+    return redirect(url_for('login'))
 
 @app.route('/cadastro/sala', methods = ['GET', 'POST'])
 def add_sala():
@@ -462,7 +446,6 @@ def add_escola():
             return redirect(url_for(next))
         return redirect(url_for('home'))
     return render_template('add_escola.html', title= "Cadastro de Escola", form = form)
-
 
 @app.route('/cadastro/coordenador', methods = ['GET', 'POST'])
 def add_coordenador():
@@ -673,7 +656,6 @@ def coordenador(ID):
 
     return render_template('coordenador.html', title = coordenador.coordenador_nome, coordenador = coordenador, contatos=contatos)
 
-
 @app.route('/apagar_coordenador/<int:ID>')
 def apagar_coordenador(ID):
     if 'email' not in session:
@@ -686,7 +668,7 @@ def apagar_coordenador(ID):
         return redirect(url_for('login'))
 
     coordenador = Coordenador.query.filter_by(coordenador_ID = ID).first()
-    db.session.delete(coordenador)
+    coordenador.usuario_ID = None
     db.session.commit()
 
     return redirect(url_for('coordenadores'))
@@ -703,11 +685,10 @@ def apagar_paciente(ID):
         return redirect(url_for('login'))
 
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
-    db.session.delete(paciente)
+    paciente.usuario_ID = None
     db.session.commit()
 
     return redirect(url_for('pacientes'))
-
 
 @app.route('/apagar_sala/<int:ID>')
 def apagar_sala(ID):
@@ -721,7 +702,7 @@ def apagar_sala(ID):
         return redirect(url_for('login'))
 
     sala = Sala.query.filter_by(sala_ID = ID).first()
-    db.session.delete(sala)
+    sala.usuario_ID = None
     db.session.commit()
 
     return redirect(url_for('salas'))
@@ -738,7 +719,7 @@ def apagar_psicopedagogo(ID):
         return redirect(url_for('login'))
 
     psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = ID).first()
-    db.session.delete(psicopedagogo)
+    psicopedagogo.usuario_ID - None
     db.session.commit()
 
     return redirect(url_for('psicopedagogos'))
@@ -755,11 +736,10 @@ def apagar_escola(ID):
         return redirect(url_for('login'))
 
     escola = Escola.query.filter_by(escola_ID = ID).first()
-    db.session.delete(escola)
+    escola.usuario_ID = None
     db.session.commit()
 
     return redirect(url_for('escolas'))
-
 
 @app.route('/paciente/<int:ID>')
 def paciente(ID):
@@ -797,7 +777,6 @@ def historico(ID):
 
 
     return render_template('historico.html', title = paciente.pessoa.nome, paciente = paciente, atendimentos = atendimentos)
-
 
 @app.route('/paciente/proximas/<int:ID>')
 def proximas(ID):
@@ -939,7 +918,6 @@ def add_paciente():
         flash(f'{form.nome.data} Cadastrado com sucesso')
         return redirect(url_for('home'))
     return render_template('addpaciente.html', title= "Cadastro de Paciente", form = form, psicopedagogos = psicopedagogos, situacoes = situacoes, coordenadores = coordenadores, escolas = escolas)
-
 
 @app.route('/procurar', methods = ['GET', 'POST'])
 def procurar():
