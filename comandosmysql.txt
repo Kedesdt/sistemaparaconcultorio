@@ -53,6 +53,19 @@ FOREIGN KEY(usuario_ID) REFERENCES usuario (id)
 );
 
 CREATE TABLE pessoa (
+pessoa_ID INTEGER NOT NULL AUTO_INCREMENT,
+nome VARCHAR(30),
+data_de_nascimento DATE,
+sexo_ID INTEGER,
+cpf VARCHAR(11),
+rg VARCHAR(11),
+usuario_ID INTEGER NOT NULL,
+
+PRIMARY KEY(pessoa_ID),
+FOREIGN KEY(sexo_ID) REFERENCES sexo(sexo_ID),
+FOREIGN KEY(usuario_ID) REFERENCES usuario(id)
+);
+
 CREATE TABLE pergunta (
 pergunta_ID INTEGER NOT NULL AUTO_INCREMENT,
 teste_ID INTEGER,
@@ -141,6 +154,8 @@ psicopedagogo_ID INTEGER,
 escola_ID INTEGER, 
 coordenador_ID INTEGER, 
 usuario_ID INTEGER, 
+login VARCHAR(120),
+senha VARCHAR(120),
 obs VARCHAR (500), 
 PRIMARY KEY (paciente_ID), 
 FOREIGN KEY (pessoa_ID) REFERENCES pessoa (pessoa_ID), 
