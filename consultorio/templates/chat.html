@@ -1,0 +1,12 @@
+{% extends 'basechat.html' %}
+
+{% block content %}
+
+<div class="text-center h1 text-primary" id="nome_paciente" title="{{paciente.paciente_ID}}">{{paciente.pessoa.nome}}</div>
+
+{% include '_nav.html' %}
+
+<table class="table" id="tabela_chat" title="{{usuario.id}}">
+  </table>
+
+  {% endblock content %}

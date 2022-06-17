@@ -1,6 +1,7 @@
-from wtforms import Form, BooleanField, StringField, PasswordField, validators
+from wtforms import Form, BooleanField, StringField, PasswordField, validators, FileField
 from wtforms.fields.datetime import DateField, DateTimeField, TimeField
 from wtforms.fields.simple import TextAreaField
+ 
 
 class Formulario_de_registro(Form):
     nome = StringField('Nome', [validators.Length(min=4, max=25)])
@@ -11,6 +12,7 @@ class Formulario_de_registro(Form):
         validators.EqualTo('confirm', message='Senhas precisam ser iguais')
     ])
     confirm = PasswordField('Confirmação de senha')
+    foto = FileField('Foto')
 
 class Formulario_login(Form):
 
@@ -37,6 +39,11 @@ class Formulario_registro_paciente(Form):
     rg = StringField('RG')
     tel = StringField('Telefone')
     email = StringField('Email')
+    senha = PasswordField('Senha', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Senhas precisam ser iguais')
+    ])
+    confirm = PasswordField('Confirmação de senha')
     nome_r = StringField('Nome do Responsável', [validators.Length(min=4, max=25)])
     cpf_r = StringField('CPF do Responsável', [validators.Length(min=11, max=11)])
     rg_r = StringField('RG do Responsável')

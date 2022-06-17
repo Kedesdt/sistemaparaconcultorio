@@ -15,7 +15,7 @@ def init():
 		host = 'diastorres.com',
 		user = 'root', 
 		password = '!Q@W#E$R5t6y7u8i',
-		database = 'testechat'
+		database = 'bancoDeTeste'
 		)
 
 def execute(query, cursor):

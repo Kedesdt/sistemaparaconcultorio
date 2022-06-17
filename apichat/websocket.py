@@ -8,6 +8,7 @@ import random
 import websockets
 import banco
 import json
+import logging
 
 async def show_time(websocket, path):
 
@@ -22,13 +23,14 @@ async def show_time(websocket, path):
             if event["tipo"] == "consulta":
                 
                 resp = banco.consulta(event['usuario'], event['paciente'], event['tempo'])
-                msg = {"data": []}
+                msg = {"tipo": "msgs", "data": []}
                 for l in resp:
                     linha = {}
 
-                    linha['texto'] = l[3]
-                    linha['de'] = l[1]
-                    linha['time'] = l[4].strftime("%Y-%m-%d %H:%M:%S")
+                    linha['texto'] = l[2]
+                    linha['de'] = l[4]
+                    linha['time'] = l[3].strftime("%Y-%m-%d %H:%M:%S")
+                    linha['id'] = l[0]
 
                     msg["data"].append(linha)
 
@@ -39,6 +41,7 @@ async def show_time(websocket, path):
                 resp = banco.nova_mensagem(event['usuario'], event['paciente'], event['de'], event['texto'])
 
             else:
+                
                 logging.error("unsupported event: %s", event)
 
 async def main():

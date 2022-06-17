@@ -3,11 +3,28 @@ from .funcoes import *
 from flask import render_template, session, request, redirect, url_for, flash
 from consultorio.models.forms import *
 from consultorio import app, db, bcrypt
-from consultorio.models.models import Atendimento, Coordenador, Escola, Psicopedagogo, Situacao, Tipo_contato, Tipo_endereco, Usuario, Sala, Paciente, Pessoa, Contato, Endereco
+from consultorio.models.models import Atendimento, Coordenador, Escola, Psicopedagogo, Situacao, Tipo_contato, Tipo_endereco, Usuario, Sala, Paciente, Pessoa, Contato, Endereco, Acesso
 
 
 
 BR = pytz.timezone('America/Sao_Paulo')
+
+@app.route('/chat/<int:ID>')
+def chat(ID):
+
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+
+    if usuario is None:
+        del session['email']
+        return redirect(url_for('login'))
+
+    
+    paciente = Paciente.query.filter_by(paciente_ID = ID).first()
+
+    return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario)
 
 @app.route('/')
 def home():
@@ -309,6 +326,7 @@ def registrar():
         return redirect(url_for('home'))
     return render_template('registrar.html', title= "Página de Registro", form = form)
 
+
 @app.route('/login', methods = ["GET", "POST"])
 def login():
     form = Formulario_login(request.form)
@@ -349,7 +367,6 @@ def add_sala():
     
     if request.method == "POST" and form.validate():
 
-        usuario = Usuario.query.filter_by(email = session['email']).first()
         sala = Sala(nome = form.nome.data, usuario_ID = usuario.id) 
         db.session.add(sala)
         db.session.commit()
@@ -910,9 +927,14 @@ def add_paciente():
         if not email_responsavel:
             email_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email_r.data)
             db.session.add(email_responsavel)
-        
 
-        db.session.add(paciente)        
+        
+        hash_pass = bcrypt.generate_password_hash(form.senha.data)
+        
+        acesso = Acesso(email = form.email.data, senha = hash_pass, paciente_ID = paciente.paciente_ID, usuario_ID = usuario.id)
+        
+        db.session.add(paciente)
+        db.session.add(acesso)        
         db.session.commit()
 
         flash(f'{form.nome.data} Cadastrado com sucesso')

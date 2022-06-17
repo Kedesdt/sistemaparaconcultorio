@@ -9,6 +9,8 @@ class Usuario(db.Model):
     nome_consultorio = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
+    #foto = db.Column("BLOB")
+    foto = db.Column(db.BLOB(1000000))
 
     def __repr__(self):
         return '<User %r>' % self.nome_usuario
@@ -18,7 +20,9 @@ class Acesso(db.Model):
     acesso_ID = db.Column(db.Integer, primary_key= True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
-    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
+    paciente = db.relationship('Paciente', backref = db.backref('pacientes', lazy = True))
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     usuario = db.relationship('Usuario', backref = db.backref('pessoas', lazy = True))
 
 class Sexo(db.Model):
@@ -49,7 +53,7 @@ class Psicopedagogo(db.Model):
 class Tipo_contato(db.Model):
 
     tipo_ID = db.Column(db.Integer, primary_key=True)
-    tipo = db.Column(db.Integer, nullable=False)
+    tipo = db.Column(db.String(30), nullable=False)
 
 class Escola(db.Model):
 
@@ -92,7 +96,7 @@ class Agenda_atendimento(db.Model):
 class Situacao(db.Model):
     
     situacao_ID = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String, nullable= False)
+    nome = db.Column(db.String(30), nullable= False)
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
 
@@ -115,6 +119,7 @@ class Paciente(db.Model):
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
     obs = db.Column(db.String(500))
 
+
 class Sala(db.Model):
 
     sala_ID = db.Column(db.Integer, primary_key=True)
@@ -129,7 +134,8 @@ class Atendimento(db.Model):
     psicopedagogo = db.relationship('Psicopedagogo')
     data_hora = db.Column(db.DateTime, nullable = False)
     paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
-    paciente = db.relationship('Paciente', backref = db.backref('pacientes', lazy = True))
+    #paciente = db.relationship('Paciente', backref = db.backref('pacientes', lazy = True))
+    paciente = db.relationship('Paciente', foreign_keys= paciente_ID )
 
     sala_ID = db.Column(db.Integer, db.ForeignKey('sala.sala_ID'))
     sala = db.relationship('Sala', backref = db.backref('salas', lazy = True))
@@ -194,5 +200,20 @@ class Resultado(db.Model):
     paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
     resultado = db.Column(db.String(100))
 
+class Conversa(db.Model):
+
+    conversa_ID = db.Column(db.Integer, primary_key = True)
+    usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
+    paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
+    paciente = db.relationship('Paciente', foreign_keys= paciente_ID )
+
+class Mensagem(db.Model):
+
+    mensagem_ID = db.Column(db.Integer, primary_key = True)
+    conversa_ID = db.Column(db.Integer, db.ForeignKey('conversa.conversa_ID'))
+    mensagem_texto = db.Column(db.String(1000))
+    time = db.Column(db.DateTime)
+    de = db.Column(db.Integer)
 
 db.create_all()

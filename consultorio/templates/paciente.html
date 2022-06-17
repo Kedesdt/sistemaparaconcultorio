@@ -70,10 +70,12 @@
       <tr>
         <td>
           <a class="btn float-left btn-success" href="{{url_for('historico', ID= paciente.paciente_ID)}}" role="button">Histórico</a>
+          <a class="btn float-right btn-success" href="{{url_for('chat', ID= paciente.paciente_ID)}}" role="button">Chat</a>
         </td>
         <td>
           <a class="btn float-right btn-success" href="{{url_for('proximas', ID= paciente.paciente_ID)}}" role="button">Próximas consultas</a>
         </td>
+
       </tr>
     </tbody>
   </table>
