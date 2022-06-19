@@ -15,7 +15,7 @@ def init():
 		host = 'diastorres.com',
 		user = 'root', 
 		password = '!Q@W#E$R5t6y7u8i',
-		database = 'bancoDeTeste'
+		database = 'bancoDeTeste4'
 		)
 
 def execute(query, cursor):
@@ -55,8 +55,14 @@ def nova_mensagem(usuario, paciente, de, texto):
 	t = datetime.datetime.now()
 	t =t.strftime("%Y-%m-%d %H:%M:%S")
 
-	cursor.execute("select conversa_ID from conversa where paciente_ID=%s and usuario_ID=%s" %(paciente, usuario))
-	conversa_ID = cursor.fetchall()[0][0]
+	for i in range(10):
+		cursor.execute("select conversa_ID from conversa where paciente_ID=%s and usuario_ID=%s" %(paciente, usuario))
+		try:
+			conversa_ID = cursor.fetchall()[0][0]
+			break
+		except:
+			cursor.execute("insert into conversa (paciente_ID, usuario_ID) values(%s, %s)" %(paciente, usuario))
+			banco.commit()
 
 	cursor.execute('insert into mensagem (conversa_ID, de, mensagem_texto, time) values(%s, %s, "%s", "%s")' %(conversa_ID, de, texto, t))
 

@@ -5,38 +5,68 @@ from consultorio.models.forms import *
 from consultorio import app, db, bcrypt
 from consultorio.models.models import Atendimento, Coordenador, Escola, Psicopedagogo, Situacao, Tipo_contato, Tipo_endereco, Usuario, Sala, Paciente, Pessoa, Contato, Endereco, Acesso
 
+def verifica():
 
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    usuario = Usuario.query.filter_by(email = session['email']).first()
+    
+    if usuario is None:
+        acesso = Acesso.query.filter_by(email = session["email"]).first()
+        session['tipo'] = acesso.tipo
+        usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
+        if acesso is None:
+            return False, False, False
+
+    
+    else:
+        acesso = Acesso.query.filter_by(usuario_ID = usuario.id).first()
+        session['tipo'] = acesso.tipo
+    if usuario is None or session['tipo'] == 2:
+        del session['email']
+        del session['tipo']
+        return False, False, False
+    
+    return True, usuario, acesso
 
 BR = pytz.timezone('America/Sao_Paulo')
 
 @app.route('/chat/<int:ID>')
 def chat(ID):
 
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
+
+    tipo = session['tipo']
 
     return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario, tipo = tipo)
 
 @app.route('/')
 def home():
-    if 'email' not in session:
+    """if 'email' not in session:
         return redirect(url_for('login'))
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
-
+    session['tipo'] = 0
     if usuario is None:
+        acesso = Acesso.query.filter_by(email = session["email"]).first()
+        usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
+        if acesso is None:
+            return redirect(url_for('login'))
+
+    if usuario is None or session['tipo'] == 2:
         del session['email']
+        del session['tipo']
         return redirect(url_for('login'))
-
-
+    """
+    v, usuario, acesso = verifica()
+    if not v:
+        return redirect(url_for('login'))
+        
     ano = time.localtime(time.time()).tm_year
     mes = time.localtime(time.time()).tm_mon
     dia = time.localtime().tm_mday
@@ -53,15 +83,10 @@ def esse_mes():
 
 @app.route('/agenda/<int:ano>/<int:mes>/<int:dia>')
 def dia(ano, mes, dia):
-    if 'email' not in session:
+    
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
-        return redirect(url_for('login'))
-
     
     meses = ["Janeiro", 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
@@ -124,13 +149,8 @@ def dia_anterior(ano, mes, dia):
 
 @app.route('/atendimento/<int:ID>', methods = ['GET', 'POST'])
 def atendimento(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     form = Formulario_resgistro_agendamento(request.form)
@@ -149,13 +169,8 @@ def atendimento(ID):
 
 @app.route('/atendimento/apagar/<int:ID>', methods = ['GET', 'POST'])
 def apagar_atendimento(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     atendimento = Atendimento.query.filter_by(atendimento_ID = ID).first()
@@ -166,13 +181,8 @@ def apagar_atendimento(ID):
 
 @app.route('/atendimento/editar/<int:ID>', methods = ['GET', 'POST'])
 def editar_atendimento(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_resgistro_agendamento(request.form)
@@ -206,13 +216,8 @@ def editar_atendimento(ID):
 
 @app.route('/atendimento/editar_horario/<int:ID>', methods = ['GET', 'POST'])
 def editar_horario(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_resgistro_agendamento(request.form)
@@ -234,13 +239,8 @@ def editar_horario(ID):
 
 @app.route('/agendamento/<int:ano>/<int:mes>/<int:dia>/<int:hora>', methods = ['GET', 'POST'])
 def agendamento(ano, mes, dia, hora):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     form = Formulario_resgistro_agendamento(request.form)
@@ -277,13 +277,8 @@ def agendamento(ano, mes, dia, hora):
 
 @app.route('/agenda/<int:ano>/<int:mes>')
 def agenda(ano, mes):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     meses = ["Janeiro", 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -318,8 +313,12 @@ def registrar():
     if request.method == "POST" and form.validate():
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
         usuario = Usuario(nome = form.nome.data , nome_consultorio = form.nome_consultorio.data, email = form.email.data, senha = hash_pass)
-        acesso = Acesso(email = form.email.data, senha = hash_pass, tipo = 0, usuario_ID = usuario.id, tipo = 0)
         db.session.add(usuario)
+        db.session.flush()
+        db.session.refresh(usuario)
+
+        acesso = Acesso(email = form.email.data, senha = hash_pass, tipo = 0, usuario_ID = usuario.id)
+        
         db.session.add(acesso)
         db.session.commit()
 
@@ -353,8 +352,9 @@ def login():
 
                     paciente = Paciente.query.filter_by(paciente_ID = acesso.paciente_ID).first()
                     usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
+                    psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = paciente.psicopedagogo_ID).first()
 
-                    return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario, tipo = acesso.tipo)
+                    return render_template('chat.html', title = psicopedagogo.pessoa.nome, paciente = paciente, usuario = usuario, tipo = acesso.tipo)
                 return redirect(request.args.get('next') or url_for('home'))
 
             else:
@@ -366,18 +366,14 @@ def login():
 @app.route('/logout')
 def logout():
     del session['email']
+    del session['tipo']
     return redirect(url_for('login'))
 
 @app.route('/cadastro/sala', methods = ['GET', 'POST'])
 def add_sala():
     
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_cadastro_sala(request.form)
@@ -399,13 +395,8 @@ def add_sala():
 @app.route('/cadastro/situacao', methods = ['GET', 'POST'])
 def add_situacao():
     
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_cadastro_situacao(request.form)
@@ -427,13 +418,8 @@ def add_situacao():
 @app.route('/cadastro/escola', methods = ['GET', 'POST'])
 def add_escola():
     
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_registro_escola(request.form)
@@ -483,13 +469,8 @@ def add_escola():
 
 @app.route('/cadastro/coordenador', methods = ['GET', 'POST'])
 def add_coordenador():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_registro_coordenador(request.form)
@@ -534,13 +515,8 @@ def add_coordenador():
 @app.route('/cadastro/psicopedagogo', methods = ['GET', 'POST'])
 def add_psicopedagogo():
     
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_registro_psicopedagogo(request.form)
@@ -575,12 +551,14 @@ def add_psicopedagogo():
         db.session.add(telefone)
         db.session.add(email)
         psic = Psicopedagogo(usuario_ID = usuario.id, pessoa_ID = pessoa.pessoa_ID)
+        db.session.add(psic)
+        db.session.flush()
+        db.session.refresh(psic)
 
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
         
-        acesso = Acesso(email = form.email.data, senha = hash_pass, psicopedagogo_ID = psic.psicopedadogo_ID, usuario_ID = usuario.id, tipo = 1)
+        acesso = Acesso(email = form.email.data, senha = hash_pass, psicopedagogo_ID = psic.psicopedagogo_ID, usuario_ID = usuario.id, tipo = 1)
 
-        db.session.add(psic)
         db.session.add(acesso)
         db.session.commit()
 
@@ -595,13 +573,8 @@ def add_psicopedagogo():
 @app.route('/escolas')
 def escolas():
 
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
@@ -612,13 +585,8 @@ def escolas():
 @app.route('/salas')
 def salas():
 
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
@@ -628,13 +596,8 @@ def salas():
 
 @app.route('/sala/<int:ID>')
 def sala(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
@@ -644,13 +607,8 @@ def sala(ID):
 
 @app.route('/escola/<int:ID>')
 def escola(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
 
@@ -662,13 +620,8 @@ def escola(ID):
 
 @app.route('/psicopedagogos')
 def psicopedagogos():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     psicopedagogos = Psicopedagogo.query.filter_by(usuario_ID = usuario.id).all()
@@ -677,7 +630,8 @@ def psicopedagogos():
 
 @app.route('/coordenadores')
 def coordenadores():
-    if 'email' not in session:
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
@@ -687,10 +641,10 @@ def coordenadores():
 
 @app.route('/coordenador/<int:ID>')
 def coordenador(ID):
-    if 'email' not in session:
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
-    usuario = Usuario.query.filter_by(email = session['email']).first()
     coordenador = Coordenador.query.filter_by(coordenador_ID = ID).first()
     contatos = Contato.query.filter_by(coordenador_ID = ID)
 
@@ -698,13 +652,8 @@ def coordenador(ID):
 
 @app.route('/apagar_coordenador/<int:ID>')
 def apagar_coordenador(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     coordenador = Coordenador.query.filter_by(coordenador_ID = ID).first()
@@ -715,13 +664,8 @@ def apagar_coordenador(ID):
 
 @app.route('/apagar_paciente/<int:ID>')
 def apagar_paciente(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
@@ -732,13 +676,8 @@ def apagar_paciente(ID):
 
 @app.route('/apagar_sala/<int:ID>')
 def apagar_sala(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     sala = Sala.query.filter_by(sala_ID = ID).first()
@@ -749,13 +688,8 @@ def apagar_sala(ID):
 
 @app.route('/apagar_psicopedagogo/<int:ID>')
 def apagar_psicopedagogo(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = ID).first()
@@ -766,13 +700,8 @@ def apagar_psicopedagogo(ID):
 
 @app.route('/apagar_escola/<int:ID>')
 def apagar_escola(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     escola = Escola.query.filter_by(escola_ID = ID).first()
@@ -783,13 +712,8 @@ def apagar_escola(ID):
 
 @app.route('/paciente/<int:ID>')
 def paciente(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
@@ -801,13 +725,8 @@ def paciente(ID):
 
 @app.route('/paciente/historico/<int:ID>')
 def historico(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     date = datetime.datetime.now(BR)
@@ -820,13 +739,8 @@ def historico(ID):
 
 @app.route('/paciente/proximas/<int:ID>')
 def proximas(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     date = datetime.datetime.now(BR)
@@ -839,13 +753,8 @@ def proximas(ID):
 @app.route('/pacientes')
 def pacientes():
     
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     pacientes = Paciente.query.filter_by(usuario_ID = usuario.id).all()
@@ -854,13 +763,8 @@ def pacientes():
 
 @app.route('/psicopedagogo/<int:ID>')
 def psicopedagogo(ID):
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = ID).first()
@@ -871,13 +775,8 @@ def psicopedagogo(ID):
 @app.route('/cadastro/paciente', methods = ['GET', 'POST'])
 def add_paciente():
     
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
     
     form = Formulario_registro_paciente(request.form)
@@ -951,12 +850,13 @@ def add_paciente():
             email_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email_r.data)
             db.session.add(email_responsavel)
 
-        
+        db.session.add(paciente)
+        db.session.flush()
+        db.session.refresh(paciente)
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
         
         acesso = Acesso(email = form.email.data, senha = hash_pass, paciente_ID = paciente.paciente_ID, usuario_ID = usuario.id, tipo = 2)
         
-        db.session.add(paciente)
         db.session.add(acesso)        
         db.session.commit()
 
@@ -967,13 +867,8 @@ def add_paciente():
 @app.route('/procurar', methods = ['GET', 'POST'])
 def procurar():
 
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-
-    if usuario is None:
-        del session['email']
+    v, usuario, acesso = verifica()
+    if not v:
         return redirect(url_for('login'))
 
     if request.method == "POST":

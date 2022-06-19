@@ -20,7 +20,7 @@ class Acesso(db.Model):
     acesso_ID = db.Column(db.Integer, primary_key= True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
-    tipo = db.Column(db.Integer, nulable=False)
+    tipo = db.Column(db.Integer, nullable=False)
     psicopedagogo_ID = db.Column(db.Integer, db.ForeignKey('psicopedagogo.psicopedagogo_ID'))
     paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'))
@@ -207,6 +207,7 @@ class Conversa(db.Model):
     usuario = db.relationship('Usuario', foreign_keys= usuario_ID)
     paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
     paciente = db.relationship('Paciente', foreign_keys= paciente_ID )
+    psicopedagogo_ID = db.Column(db.Integer, db.ForeignKey('psicopedagogo.psicopedagogo_ID'))
 
 class Mensagem(db.Model):
 
