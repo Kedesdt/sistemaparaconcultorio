@@ -20,10 +20,10 @@ class Acesso(db.Model):
     acesso_ID = db.Column(db.Integer, primary_key= True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
+    tipo = db.Column(db.Integer, nulable=False)
+    psicopedagogo_ID = db.Column(db.Integer, db.ForeignKey('psicopedagogo.psicopedagogo_ID'))
     paciente_ID = db.Column(db.Integer, db.ForeignKey('paciente.paciente_ID'))
-    paciente = db.relationship('Paciente', backref = db.backref('pacientes', lazy = True))
     usuario_ID = db.Column(db.Integer, db.ForeignKey('usuario.id'))
-    usuario = db.relationship('Usuario', backref = db.backref('pessoas', lazy = True))
 
 class Sexo(db.Model):
 

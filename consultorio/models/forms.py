@@ -27,6 +27,11 @@ class Formulario_registro_psicopedagogo(Form):
 
     nome = StringField('Nome', [validators.Length(min=4, max=25)])
     email = StringField('Email', [validators.Length(min=6, max=35)])
+    senha = PasswordField('Senha', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Senhas precisam ser iguais')
+    ])
+    confirm = PasswordField('Confirmação de senha')
     cpf = StringField('CPF', [validators.Length(min=11, max=11)])
     rg = StringField('RG', [validators.Length(min=8, max=9)])
     telefone = StringField('Telefone', [validators.Length(min=6, max=35)])

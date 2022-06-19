@@ -21,10 +21,9 @@ def chat(ID):
         del session['email']
         return redirect(url_for('login'))
 
-    
     paciente = Paciente.query.filter_by(paciente_ID = ID).first()
 
-    return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario)
+    return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario, tipo = tipo)
 
 @app.route('/')
 def home():
@@ -319,7 +318,9 @@ def registrar():
     if request.method == "POST" and form.validate():
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
         usuario = Usuario(nome = form.nome.data , nome_consultorio = form.nome_consultorio.data, email = form.email.data, senha = hash_pass)
+        acesso = Acesso(email = form.email.data, senha = hash_pass, tipo = 0, usuario_ID = usuario.id, tipo = 0)
         db.session.add(usuario)
+        db.session.add(acesso)
         db.session.commit()
 
         flash(f'Bem vindo {form.nome.data} Obrigado por registrar')
@@ -337,11 +338,27 @@ def login():
 
         if usuario and bcrypt.check_password_hash(usuario.senha, form.senha.data):
             session['email'] = form.email.data
+            session["tipo"] = 0
             flash(f'Bem vindo {form.email.data} Você está logado', 'success')
             return redirect(request.args.get('next') or url_for('home'))
         
         else:
-            flash(f'Não foi possivel logar')
+            
+            acesso = Acesso.query.filter_by(email = form.email.data).first()
+            if acesso and bcrypt.check_password_hash(acesso.senha, form.senha.data):
+                session['email'] = form.email.data
+                session['tipo'] = acesso.tipo
+                flash(f'Bem vindo {form.email.data} Você está logado como acesso', 'success')
+                if acesso.tipo == 2:
+
+                    paciente = Paciente.query.filter_by(paciente_ID = acesso.paciente_ID).first()
+                    usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
+
+                    return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario, tipo = acesso.tipo)
+                return redirect(request.args.get('next') or url_for('home'))
+
+            else:
+                flash(f'Não foi possivel logar')
 
         return redirect(url_for('home'))
     return render_template('login.html', title = 'Login', form = form)
@@ -558,7 +575,13 @@ def add_psicopedagogo():
         db.session.add(telefone)
         db.session.add(email)
         psic = Psicopedagogo(usuario_ID = usuario.id, pessoa_ID = pessoa.pessoa_ID)
+
+        hash_pass = bcrypt.generate_password_hash(form.senha.data)
+        
+        acesso = Acesso(email = form.email.data, senha = hash_pass, psicopedagogo_ID = psic.psicopedadogo_ID, usuario_ID = usuario.id, tipo = 1)
+
         db.session.add(psic)
+        db.session.add(acesso)
         db.session.commit()
 
         flash(f'{form.nome.data} Cadastrado com sucesso')
@@ -931,7 +954,7 @@ def add_paciente():
         
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
         
-        acesso = Acesso(email = form.email.data, senha = hash_pass, paciente_ID = paciente.paciente_ID, usuario_ID = usuario.id)
+        acesso = Acesso(email = form.email.data, senha = hash_pass, paciente_ID = paciente.paciente_ID, usuario_ID = usuario.id, tipo = 2)
         
         db.session.add(paciente)
         db.session.add(acesso)        
