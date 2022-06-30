@@ -12,7 +12,7 @@ botaom.addEventListener('click', zoomout);
 function zoomout(element){
 	//console.log("Zoom -");
 	fonte_inicial = fonte_inicial - 5;
-	var linhas = document.getElementsByTagName("td");
+	var linhas = document.getElementsByTagName("div");
 	for (var i =0; i < linhas.length; i++){
 		linhas[i].style.fontSize = fonte_inicial + "px";
 	}
@@ -21,7 +21,7 @@ function zoomout(element){
 function zoomin(){
 	//console.log("Zoom +");
 	fonte_inicial = fonte_inicial + 5;
-	var linhas = document.getElementsByTagName("td");
+	var linhas = document.getElementsByTagName("div");
 	//console.log(linhas);
 	for (var i =0; i < linhas.length; i++){
 		linhas[i].style.fontSize = fonte_inicial + 'px';
@@ -30,12 +30,12 @@ function zoomin(){
 }
 
 var inseridas = [];
-var ws = new WebSocket("ws://localhost:5010/");
+var ws = new WebSocket("ws://diastorres.com:5010/");
 
 var entrada = document.getElementById("entrada_de_texto");
 entrada.addEventListener("keypress", function(e) {
 	if (e.code == "Enter"){
-		envia(info.tipo);
+		envia();
 	}
   });
 var botao_enviar = document.getElementById("button-addon2");
@@ -57,9 +57,9 @@ function nova_mensagem(usuario, paciente, de, texto){
 	ws.send(JSON.stringify({tipo: "nova_mensagem", usuario: usuario, paciente: paciente, de: de, texto: texto}));
 }
 
-function envia(de = 1){
+function envia(){
 
-	nova_mensagem(idu, idp, de, entrada.value);
+	nova_mensagem(idu, idp, info.tipo, entrada.value);
 	//insere_msg(de, entrada.value);
 	entrada.value = "";
 
@@ -67,20 +67,27 @@ function envia(de = 1){
 
 function insere_msg(de, texto){
 	var tr = document.createElement("tr");
-	var msg = document.createElement("td");
+	var td = document.createElement("td");
+	var msg = document.createElement("div");
 	tr.setAttribute("width", "100%");
+	td.setAttribute("width", "100%");
 
 	console.log(info.tipo);
 	console.log(de);
 	if (de != info.tipo){
-		msg.setAttribute("class", "btn float-left btn-success");
+		msg.setAttribute("class", "minha");
+		td.style.alignContent = 'left';
+		msg.style.float = 'left';
 	}
 	else{
-		msg.setAttribute("class", "btn float-right btn-warning");
+		msg.setAttribute("class", "naominha");
+		td.style.alignContent = 'right';
+		msg.style.float = 'right';
 	}
 	msg.style.fontSize= fonte_inicial + "px";
 	msg.innerHTML = texto;
-	tr.appendChild(msg);
+	tr.appendChild(td);
+	td.appendChild(msg)
 	tbody.appendChild(tr);
 }
 

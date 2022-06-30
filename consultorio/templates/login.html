@@ -1,31 +1,84 @@
+<!doctype html>
+<html lang="pt-br" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Tela de Login</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href=" {{url_for('static', filename='css/login.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<!-- <link href="bootstrap.min.css" rel="stylesheet"> -->
 {% extends "base.html" %}
-
-
 {% block content %}
 
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
 
-<div class="container">
-    {% from "_formhelpers.html" import render_field %}
-    <div class="row">
-        
-        
-        <div class="col-md-4"></div>
-        <div class="col-md-4">
-            <div class="text-center h1 text-primary">Login</div>
-            
-            
-            <form method="post" enctype="multipart/form-data">
-                <div>
-                    {{ render_field(form.email, class="form-control") }}
-                    {{ render_field(form.senha, class="form-control") }}
-
-                </div>
-                <p><input type=submit value=Login>
-                    <a class="float-right btn btn-sm btn-success" href="{{url_for('registrar')}}">Registrar</a>
-            </form>
-        </div>
-        
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+  </head>
+  <body class="text-center">
+  <div class="form-login">
+  <form  method="post" action="{{url_for('login')}}" enctype="multipart/form-data">
+    <div class="modal-body p-5 pt-0">
+    <h1 class="h3 mb-3 fw-normal">Login</h1>
+    <div class="form-floating mb-3">
+      <input type="email" width="50" class="form-control rounded-4"  name="Email" id="Email" placeholder="name@example.com">
+      <label for="floatingInput">E-Mail</label>
     </div>
-</div>
 
+    <div class="form-floating mb-3">
+      <input type="password"  class="form-control rounded-4" name="Senha"  id="Senha" placeholder="Senha">
+      <label for="floatingPassword">Senha</label>
+    </div>
+    <div class="form-floating mb-3">
+    <button class="w-100 btn btn-lg btn-primary" type="submit">Entrar</button>
+  </div>
+ </div>
+  </form>
+  <div class="form-login-secundary">
+    <a href="{{url_for('registrar')}}"> 
+    <button class="w-100 btn btn-lg btn-outline-secondary">Resgistrar-se</button>
+  </a>
+  </div>
+{% if showModal == true %}
+  <script>
+     $(document).ready(()=>{
+        $('#exampleModal').modal('show');
+     });
+  </script>
+    <!--Modal screen-->
+ <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="exampleModalLabel"><b>Atenção!!!</b></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><b>Erro ao fazer Login. Confira os dados preenchidos.</b></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+</body>
+</html>
 {% endblock content %}

@@ -15,7 +15,7 @@ def init():
 		host = 'diastorres.com',
 		user = 'root', 
 		password = '!Q@W#E$R5t6y7u8i',
-		database = 'bancoDeTeste4'
+		database = 'banco'
 		)
 
 def execute(query, cursor):
@@ -40,10 +40,17 @@ def consulta(usuario, paciente, tempo):
 	t = datetime.datetime.now() - datetime.timedelta(seconds = tempo)
 
 	t =t.strftime("%Y-%m-%d %H:%M:%S")
+	while True:
+		cursor.execute("select conversa_ID from conversa where paciente_ID=%s and usuario_ID=%s" %(paciente, usuario))
 
-	cursor.execute("select conversa_ID from conversa where paciente_ID=%s and usuario_ID=%s" %(paciente, usuario))
-	conversa_ID = cursor.fetchall()[0][0]
-	cursor.execute('select * from mensagem where conversa_ID=%s and time>"%s"' %(conversa_ID, t))
+		conversa_ID = cursor.fetchall()
+		if len(conversa_ID) == 0:
+			cursor.execute("insert into conversa (paciente_ID, usuario_ID) values(%s, %s)" %(paciente, usuario))
+		
+		else:
+			break
+	
+	cursor.execute('select * from mensagem where conversa_ID=%s and time>"%s"' %(conversa_ID[0][0], t))
 
 	return cursor.fetchall()
 
@@ -63,7 +70,7 @@ def nova_mensagem(usuario, paciente, de, texto):
 		except:
 			cursor.execute("insert into conversa (paciente_ID, usuario_ID) values(%s, %s)" %(paciente, usuario))
 			banco.commit()
-
+	print('insert into mensagem (conversa_ID, de, mensagem_texto, time) values(%s, %s, "%s", "%s")' %(conversa_ID, de, texto, t))
 	cursor.execute('insert into mensagem (conversa_ID, de, mensagem_texto, time) values(%s, %s, "%s", "%s")' %(conversa_ID, de, texto, t))
 
 	banco.commit()

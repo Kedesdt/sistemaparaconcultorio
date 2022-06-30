@@ -9,11 +9,10 @@ class Usuario(db.Model):
     nome_consultorio = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha = db.Column(db.String(120), unique=False, nullable=False)
-    #foto = db.Column("BLOB")
-    foto = db.Column(db.BLOB(1000000))
+    foto =  db.Column(db.LargeBinary, unique=False,nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.nome_usuario
+        return '<User %r>' % self.foto
 
 class Acesso(db.Model):
 

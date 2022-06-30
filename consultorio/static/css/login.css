@@ -38,3 +38,10 @@ body {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+.form-login-secundary {
+  width: 100%;
+  max-width: 400px;
+  padding: 0px;
+  padding-top: 0px;
+  margin: auto;
+}

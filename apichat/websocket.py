@@ -22,6 +22,7 @@ async def show_time(websocket, path):
             event = json.loads(message)
             if event["tipo"] == "consulta":
                 
+                print('consulta')
                 resp = banco.consulta(event['usuario'], event['paciente'], event['tempo'])
                 msg = {"tipo": "msgs", "data": []}
                 for l in resp:
@@ -45,8 +46,11 @@ async def show_time(websocket, path):
                 logging.error("unsupported event: %s", event)
 
 async def main():
-    async with websockets.serve(show_time, "localhost", 5010):
+    print('inicio')
+    async with websockets.serve(show_time, "45.93.100.30", 5010):
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(main())
+    #asyncio.run(main())

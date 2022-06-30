@@ -1,23 +1,50 @@
 {% extends "base.html" %}
-
-
 {% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+function obterDiretorio()
+{
+    document.getElementById('diretorio').value = $("input[type='file']").val();
+}
+</script>
 
+<script>
+ function setActionForm(action)
+ {
+   if(action =='uploadImage')
+   {
+      obterDiretorio();
+   }
+   document.getElementById('formImage').action ="{{url_for('uploadImage')}}".replace('uploadImage',action);
+   document.getElementById('formImage').submit();
+ }
+</script>
 <div class="text-center h1 text-success">Página de registro</div>
 <div class="container">
     {% from "_formhelpers.html" import render_field %}
-    <form method="post" enctype="multipart/form-data">
-    <div>
+     <form action="" enctype="multipart/form-data" method="post" id="formImage" name="formImage">
+      <div>
         {{ render_field(form.nome, class= "form-control") }}
         {{ render_field(form.nome_consultorio, class= "form-control") }}
         {{ render_field(form.email, class= "form-control") }}
         {{ render_field(form.senha, class= "form-control") }}
         {{ render_field(form.confirm, class= "form-control") }}
-        {{ render_field(form.foto, class= "form-control") }}
-
-    </div>
-  <p><input type=submit value=Registrar>
-</form>
-</div>
-
+        <input type="hidden" value="" id="hideimage" name="hideimage">
+        <p><input type="button" value="Registrar" onclick="setActionForm('registrar')">
+       </div>
+    <p><strong>Foto</strong></p>
+          {% if data == None %}
+           <img src={{url_for('static',filename='css/sem_foto.png')}} width="60" height="60" class="rounded-circle me-2">
+          {% endif %}
+          {% if data != None %}
+        <p>{{ objeto.x }}<br/>
+           {{ objeto.y }}</p>
+        <img src="data:;base64,{{data}}" width="60" height="60" class="rounded-circle me-2" id="imagemfoto" name="imagemfoto">
+          {% endif %}
+        <br><br>
+        <input type="file" id="filename" name="filename" multiple accept="*.*">
+        <input type="hidden" id="diretorio" name="diretorio" value="">
+        <input type="button" value="Carregar" onclick="setActionForm('uploadImage')" >
+    </form>
+  </div>
 {% endblock content %}

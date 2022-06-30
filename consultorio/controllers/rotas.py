@@ -1,36 +1,119 @@
+import mysql.connector
+import base64
+import io
+from PIL import Image
+import imageio as image
+import os
 import time, datetime, pytz
-from .funcoes import *
+from sqlalchemy.sql import *
+from base64 import b64encode
 from flask import render_template, session, request, redirect, url_for, flash
+from consultorio.controllers.funcoes import *
 from consultorio.models.forms import *
 from consultorio import app, db, bcrypt
 from consultorio.models.models import Atendimento, Coordenador, Escola, Psicopedagogo, Situacao, Tipo_contato, Tipo_endereco, Usuario, Sala, Paciente, Pessoa, Contato, Endereco, Acesso
+"""
+Escola
+Endereço da escola 
+Telefone da escola 
+Coordenadora (o)
+série atual 
+Período 
+"""
+
+BR = pytz.timezone('America/Sao_Paulo')
+objeto = None
 
 def verifica():
 
     if 'email' not in session:
         return redirect(url_for('login'))
-
-    usuario = Usuario.query.filter_by(email = session['email']).first()
-    
-    if usuario is None:
-        acesso = Acesso.query.filter_by(email = session["email"]).first()
-        session['tipo'] = acesso.tipo
-        usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
-        if acesso is None:
+    try:
+        usuario = Usuario.query.filter_by(email = session['email']).first()
+        
+        if usuario is None:
+            acesso = Acesso.query.filter_by(email = session["email"]).first()
+            session['tipo'] = acesso.tipo
+            usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
+            if acesso is None:
+                return False, False, False
+            print("Acesso OK")
+        
+        else:
+            print("Usuario OK")
+            acesso = Acesso.query.filter_by(usuario_ID = usuario.id).first()
+            session['tipo'] = acesso.tipo
+        if usuario is None or session['tipo'] == 2:
+            del session['email']
+            del session['tipo']
             return False, False, False
+        
+        return True, usuario, acesso
+    except:
+        return False
 
-    
+def conectarBDMySQL():
+      return mysql.connector.connect(user='root', password='!Q@W#E$R5t6y7u8i',host='diastorres.com',database='banco')
+
+@app.route('/procurarPaciente<string:valor>',methods = ["GET"])
+def procurarPaciente(valor):
+    if request.method == 'GET':
+        conectar = conectarBDMySQL()
+        cursor = conectar.cursor()
+        sql = """Select nome From pessoa WHERE pessoa.nome = %s"""
+        cursor.execute(sql,(valor,))
+        retorno = cursor.fetchall()
+    return render_template("pacientem.html",retorno=retorno)
+
+@app.route('/uploadImage',methods = ['GET', 'POST'])
+def uploadImage():
+     if request.method == 'POST':
+          form = Formulario_de_registro(request.form)
+          uploade_file = request.files['filename']
+          diretorio = request.form['diretorio']
+          diretorio = './img'
+          #print(diretorio)
+          # filepath =  os.path.join(app.config['FILE_UPLOADS'],uploade_file.filename)
+          uploade_file.save(diretorio)
+          global objeto
+          with open(diretorio,'rb') as file:
+              objeto = file.read()
+              data = b64encode(objeto).decode("utf-8")
+          return render_template('registrar.html', title="Página de Registro", form=form,objeto=objeto, data=data)
+
+@app.route('/addPaciente/<string:value>')
+def pagina(value):
+
+    print(value)
+    if value == 'addPedagogo':
+        return redirect(url_for('add_psicopedagogo'))
+    elif value == 'addPaciente':
+        return redirect(url_for('add_paciente'))
+    elif value == 'addCoordenador':
+        return redirect(url_for('add_coordenador'))
+    elif value == 'addEscola':
+        return redirect(url_for('add_escola'))
+    elif value == 'addSituacao':
+        return redirect(url_for('add_situacao'))
+    elif value == 'addSala':
+        return redirect(url_for('add_sala'))
+    elif value == 'home':
+        return redirect(url_for('home'))
+    elif value == 'calendario':
+        return redirect(url_for('esse_mes'))
+    elif value == 'psicopedagogos':
+        return redirect(url_for('psicopedagogos'))
+    elif value == 'escolas':
+        return redirect(url_for('escolas'))
+    elif value == 'salas':
+        return redirect(url_for('salas'))
+    elif value == 'pacientes':
+        return redirect(url_for('pacientes'))
+    elif value == 'coordenadores':
+        return redirect(url_for('coordenadores'))
     else:
-        acesso = Acesso.query.filter_by(usuario_ID = usuario.id).first()
-        session['tipo'] = acesso.tipo
-    if usuario is None or session['tipo'] == 2:
-        del session['email']
-        del session['tipo']
-        return False, False, False
-    
-    return True, usuario, acesso
+        return redirect(url_for('loginacesso'))
 
-BR = pytz.timezone('America/Sao_Paulo')
 
 @app.route('/chat/<int:ID>')
 def chat(ID):
@@ -45,8 +128,98 @@ def chat(ID):
 
     return render_template('chat.html', title = paciente.pessoa.nome, paciente = paciente, usuario = usuario, tipo = tipo)
 
+@app.route('/login', methods = ["GET", "POST"])
+def login():
+    form = Formulario_login(request.form)
+    Email = request.form.get("Email")
+    Senha = request.form.get("Senha")
+
+    try:
+
+        if request.method == "POST":
+
+            print("login")
+            usuario = Usuario.query.filter_by(email = Email).first()
+            if usuario:
+                print(usuario.nome)
+            else:
+                print("Usuario nao encontrado")
+            acesso = Acesso.query.filter_by(email = Email).first()
+            #senha = Usuario.query.filter_by(senha = Senha).first()
+            if acesso:
+                print(2)
+                print(acesso.usuario_ID)
+                print(acesso.senha)
+            else:
+                print("Acesso nao encontrado")
+
+            if usuario and bcrypt.check_password_hash(usuario.senha, Senha):
+                session['email'] = Email
+                session['tipo'] = 0
+                bfoto = Usuario.query.filter_by(email=Email).first()
+            
+                foto = b64encode(bfoto.foto).decode("utf-8")
+
+                flash(f'Bem vindo {Email} Você está logado', 'success')
+                showModal = False
+                print('logou 1')
+                return render_template('index.html',bfoto=bfoto, foto = foto)
+                #return redirect(url_for('index'))
+                print(Senha)
+            
+            elif acesso and bcrypt.check_password_hash(acesso.senha, Senha):
+                print("logando acesso")
+                session['email'] = form.email.data
+                session['tipo'] = acesso.tipo
+                usuario = Usuario.query.filter_by(id=acesso.usuario_ID).first()
+
+                foto = b64encode(usuario.foto).decode("utf-8")
+
+                flash(f'Bem vindo {form.email.data} Você está logado como acesso', 'success')
+                if acesso.tipo == 2:
+
+                    paciente = Paciente.query.filter_by(paciente_ID = acesso.paciente_ID).first()
+                    usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
+                    psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = paciente.psicopedagogo_ID).first()
+                    print('logou 2')
+                    return render_template('chat.html', title = psicopedagogo.pessoa.nome, paciente = paciente, usuario = usuario, tipo = acesso.tipo)
+                print('logou 3')
+                return redirect(request.args.get('next') or url_for('home'))
+
+
+            else:
+            #  flash(f'Não foi possivel logar')
+                print("Nao logou")
+                showModal=True
+                return render_template('login.html',title = 'Login',form=form,showModal=showModal)
+            #return redirect(url_for('index'))
+            #return render_template('login.html', title = 'Login', form = form,showModal=false)
+            
+    except Exception as e:
+        print(e.args)
+        print(type(e))
+        return render_template('login.html', title = 'Login', form=form,showModal=True)
+
+
+################################
+
+################################
+
 @app.route('/')
+def loginacesso():
+    return render_template('login.html')
+
+@app.route('/index')
+def index():
+    ano = time.localtime(time.time()).tm_year
+    mes = time.localtime(time.time()).tm_mon
+    dia = time.localtime().tm_mday
+    return redirect(url_for('agenda', ano = ano, mes = mes, dia = dia))
+    #return render_template('index.html')
+@app.route('/home')
 def home():
+
+    print("esta no home")
     """if 'email' not in session:
         return redirect(url_for('login'))
 
@@ -64,6 +237,7 @@ def home():
         return redirect(url_for('login'))
     """
     v, usuario, acesso = verifica()
+    print(v, usuario, acesso)
     if not v:
         return redirect(url_for('login'))
         
@@ -307,12 +481,28 @@ def agenda(ano, mes):
     nome = usuario.nome_consultorio, usuario = usuario, l_mes = l_mes, mes = mes, ano = ano, proximo_mes = proximo_mes, proximo_ano = proximo_ano,
     mes_anterior = mes_anterior, ano_anterior = ano_anterior, nome_atual = meses[mes - 1], nome_anterior = meses[mes_anterior - 1], proximo_nome = meses[proximo_mes - 1], horas = horas)
 
+##########################
 @app.route('/registrar', methods = ['GET', 'POST'])
 def registrar():
     form = Formulario_de_registro(request.form)
     if request.method == "POST" and form.validate():
+        global objeto
+        foto = objeto
+        if foto == None:
+            arquivo = os.path.join(app.static_folder,'css/sem_foto.png')
+            with open(arquivo, 'rb') as file:
+                foto = file.read()
+
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
-        usuario = Usuario(nome = form.nome.data , nome_consultorio = form.nome_consultorio.data, email = form.email.data, senha = hash_pass)
+        ########
+        #cnx = conectarBDMySQL()
+        #conect = cnx.cursor()
+        #conect.execute("Insert Into usuario (nome, nome_consultorio,email,senha, foto) Value (%s,%s,%s,%s,%s)",(form.nome.data,form.nome_consultorio.data,form.email.data,hash_pass,foto))
+        #cnx.commit()
+        #conect.close()
+
+        ########
+        usuario = Usuario(nome = form.nome.data , nome_consultorio = form.nome_consultorio.data, email = form.email.data, senha = hash_pass, foto=foto)
         db.session.add(usuario)
         db.session.flush()
         db.session.refresh(usuario)
@@ -323,45 +513,14 @@ def registrar():
         db.session.commit()
 
         flash(f'Bem vindo {form.nome.data} Obrigado por registrar')
-        return redirect(url_for('home'))
-    return render_template('registrar.html', title= "Página de Registro", form = form)
+        return redirect(url_for('loginacesso'))
+    else:
+         data   = None
+         objeto = None
+         return render_template('registrar.html', title= "Página de Registro", form = form,objeto=objeto,data=data)
 
-
-@app.route('/login', methods = ["GET", "POST"])
-def login():
-    form = Formulario_login(request.form)
-    
-    if request.method == "POST" and form.validate():
-
-        usuario = Usuario.query.filter_by(email = form.email.data).first()
-
-        if usuario and bcrypt.check_password_hash(usuario.senha, form.senha.data):
-            session['email'] = form.email.data
-            session["tipo"] = 0
-            flash(f'Bem vindo {form.email.data} Você está logado', 'success')
-            return redirect(request.args.get('next') or url_for('home'))
-        
-        else:
-            
-            acesso = Acesso.query.filter_by(email = form.email.data).first()
-            if acesso and bcrypt.check_password_hash(acesso.senha, form.senha.data):
-                session['email'] = form.email.data
-                session['tipo'] = acesso.tipo
-                flash(f'Bem vindo {form.email.data} Você está logado como acesso', 'success')
-                if acesso.tipo == 2:
-
-                    paciente = Paciente.query.filter_by(paciente_ID = acesso.paciente_ID).first()
-                    usuario = Usuario.query.filter_by(id = acesso.usuario_ID).first()
-                    psicopedagogo = Psicopedagogo.query.filter_by(psicopedagogo_ID = paciente.psicopedagogo_ID).first()
-
-                    return render_template('chat.html', title = psicopedagogo.pessoa.nome, paciente = paciente, usuario = usuario, tipo = acesso.tipo)
-                return redirect(request.args.get('next') or url_for('home'))
-
-            else:
-                flash(f'Não foi possivel logar')
-
-        return redirect(url_for('home'))
-    return render_template('login.html', title = 'Login', form = form)
+    #return render_template('registrar.html', title= "Página de Registro", form = form)
+##########################
 
 @app.route('/logout')
 def logout():
@@ -774,11 +933,11 @@ def psicopedagogo(ID):
 
 @app.route('/cadastro/paciente', methods = ['GET', 'POST'])
 def add_paciente():
-    
+    print(1)
     v, usuario, acesso = verifica()
     if not v:
         return redirect(url_for('login'))
-    
+    print(2)
     form = Formulario_registro_paciente(request.form)
 
     usuario = Usuario.query.filter_by(email = session['email']).first()
@@ -788,11 +947,11 @@ def add_paciente():
     escolas = Escola.query.filter_by(usuario_ID = usuario.id).all()
     
     if request.method == "POST" and form.validate():
-
+        print(3)
         pessoa_paciente = Pessoa.query.filter_by(nome = form.nome.data).filter_by(usuario_ID = usuario.id).first()
 
         if not pessoa_paciente:
-
+            print(4)
             pessoa_paciente = Pessoa(nome = form.nome.data, usuario_ID = usuario.id, cpf = form.cpf.data, rg = form.rg.data)
             db.session.add(pessoa_paciente)
             pessoa_paciente = Pessoa.query.filter_by(nome = form.nome.data).filter_by(usuario_ID = usuario.id).first()
@@ -800,7 +959,7 @@ def add_paciente():
         pessoa_responsavel = Pessoa.query.filter_by(usuario_ID = usuario.id).filter_by(cpf = form.cpf_r.data).first()
 
         if not pessoa_responsavel:
-
+            print(5)
             pessoa_responsavel = Pessoa(nome = form.nome_r.data, usuario_ID = usuario.id, cpf = form.cpf_r.data, rg = form.rg_r.data)
             db.session.add(pessoa_responsavel)
             pessoa_responsavel = Pessoa.query.filter_by(cpf = form.cpf_r.data).first()
@@ -812,6 +971,7 @@ def add_paciente():
         tipo_contato = Tipo_contato.query.filter_by(tipo = "Telefone").first()
         
         if tipo_contato is None:
+            print(6)
             
             tipo_contato = Tipo_contato(tipo = "Telefone")
             db.session.add(tipo_contato)
@@ -821,6 +981,7 @@ def add_paciente():
         telefone_paciente = Contato.query.filter_by(pessoa_ID = pessoa_paciente.pessoa_ID).filter_by(contato = form.tel.data).first()
         
         if not telefone_paciente:
+            print(7)
             telefone_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel.data)
             db.session.add(telefone_paciente)
        
@@ -828,12 +989,15 @@ def add_paciente():
         telefone_responsavel = Contato.query.filter_by(pessoa_ID = pessoa_responsavel.pessoa_ID).filter_by(contato = form.tel_r.data).first()
         
         if not telefone_responsavel:
+            print(8)
             telefone_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.tel_r.data)
             db.session.add(telefone_responsavel)
         
         tipo_contato = Tipo_contato.query.filter_by(tipo = "Email").first()
         
         if tipo_contato is None:
+
+            print(9)
 
             tipo_contato = Tipo_contato(tipo = "Email")
             db.session.add(tipo_contato)
@@ -842,11 +1006,13 @@ def add_paciente():
         email_paciente = Contato.query.filter_by(pessoa_ID = pessoa_paciente.pessoa_ID).filter_by(contato = form.email.data).first()
         
         if not email_paciente:
+            print(10)
             email_paciente = Contato(pessoa_ID = pessoa_paciente.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email.data)
             db.session.add(email_paciente)
 
         email_responsavel = Contato.query.filter_by(pessoa_ID = pessoa_responsavel.pessoa_ID).filter_by(contato = form.email_r.data).first()
         if not email_responsavel:
+            print(11)
             email_responsavel = Contato(pessoa_ID = pessoa_responsavel.pessoa_ID, tipo_ID = tipo_contato.tipo_ID, contato = form.email_r.data)
             db.session.add(email_responsavel)
 
@@ -854,6 +1020,8 @@ def add_paciente():
         db.session.flush()
         db.session.refresh(paciente)
         hash_pass = bcrypt.generate_password_hash(form.senha.data)
+
+        print(12)
         
         acesso = Acesso(email = form.email.data, senha = hash_pass, paciente_ID = paciente.paciente_ID, usuario_ID = usuario.id, tipo = 2)
         
